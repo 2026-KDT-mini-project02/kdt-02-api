@@ -1,0 +1,113 @@
+.signupTitle {
+  margin: 8px 0 0;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: #111827;
+}
+
+.signupSub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: rgba(17, 24, 39, 0.65);
+}
+
+/* 체크박스 영역 */
+.agreeBox {
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 14px;
+  padding: 14px 14px;
+  margin-bottom: 18px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.agreeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  font-size: 14px;
+  color: rgba(17, 24, 39, 0.75);
+}
+
+.agreeRow input {
+  width: 18px;
+  height: 18px;
+}
+
+/* 하단 링크 */
+.signupBottom {
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: auto;
+}
+
+.signupLink {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 아이디 입력 + 중복확인 버튼 한 줄 */
+.idRow {
+  display: grid;
+  grid-template-columns: 1fr 104px;
+  gap: 10px;
+  align-items: center;
+}
+
+.idInput {
+  min-width: 0;
+}
+
+/* 파란 버튼 톤으로 통일 */
+.idCheckBtn {
+  height: 54px;
+  border-radius: 18px;
+  border: none;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  background: #2f6fff;
+  color: #ffffff;
+
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(47, 111, 255, 0.25);
+}
+
+.idCheckBtn.on:active {
+  transform: translateY(1px);
+}
+
+/* 비활성(아이디 형식 안 맞거나 확인중) */
+.idCheckBtn.off:disabled {
+  background: rgba(47, 111, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* 중복확인 메시지 */
+.idMsgOk {
+  margin: -6px 0 4px;
+  font-size: 13px;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.idMsgBad {
+  margin: -6px 0 4px;
+  font-size: 13px;
+  color: #e11d48;
+  font-weight: 600;
+}

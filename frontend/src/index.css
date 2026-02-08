@@ -1,0 +1,52 @@
+/*
+  =========================
+  src/index.css
+  =========================
+  이 파일은 "전역(Global) CSS" 입니다.
+  - 앱 전체(모든 페이지/컴포넌트)에 공통으로 적용되는 스타일만 작성합니다.
+  - body 배경(그라데이션), 기본 폰트, 리셋(html/body/#root), 공통 색상 변수(:root) 등이 여기에 해당합니다.
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+
+  background:
+    radial-gradient(60vw 45vh at 50% -10vh,
+      rgba(120, 170, 255, 0.22) 0%,
+      rgba(120, 170, 255, 0.00) 55%),
+    radial-gradient(55vw 40vh at 50% 110%,
+      rgba(210, 185, 255, 0.10) 0%,
+      rgba(210, 185, 255, 0.00) 45%),
+    linear-gradient(180deg,
+      #EEF5FF 0%,
+      #F4F6FF 40%,
+      #FFFFFF 100%);
+
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 20px);
+}
+
+/* 페이지가 들어갈 화면 (데스크톱에서도 폭 제한) */
+.appShell {
+  width: min(420px, 100%);
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}

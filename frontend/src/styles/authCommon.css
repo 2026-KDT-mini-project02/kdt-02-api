@@ -1,0 +1,63 @@
+/* 공통 페이지 레이아웃 */
+.authPage {
+  flex: 1;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120px 20px 24px;
+}
+
+.authTop {
+  text-align: center;
+  margin-bottom: 34px;
+}
+
+.authForm {
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.authBtns {
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* 공통 링크 버튼 */
+.linkBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 회색 텍스트 */
+.muted {
+  color: rgba(17, 24, 39, 0.55);
+  font-size: 14px;
+}
+
+/* 에러 메시지 */
+.authMsg {
+  margin-top: 10px;
+  color: #e11d48;
+  font-size: 14px;
+}
+
+/* footer */
+.authFooter {
+  margin-top: 28px;
+  padding-bottom: 12px;
+  font-size: 12px;
+  color: rgba(17, 24, 39, 0.35);
+}

@@ -1,0 +1,34 @@
+.findIdTitle {
+  margin: 8px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.findIdSub {
+  margin-top: 10px;
+  font-size: 15px;
+  color: rgba(17, 24, 39, 0.65);
+}
+
+.findIdLinks {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* 파란 링크 */
+.linkBtn {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.backRow {
+  margin-bottom: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.backText {
+  color: rgba(17, 24, 39, 0.55);
+}

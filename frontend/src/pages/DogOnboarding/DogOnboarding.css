@@ -1,0 +1,45 @@
+.dogTitle {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: #111827;
+}
+
+.dogSub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: rgba(17, 24, 39, 0.65);
+}
+
+.dogForm {
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.dogLabel {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(17, 24, 39, 0.75);
+}
+
+.req {
+  color: #e11d48;
+}
+
+.hint {
+  margin: -4px 0 6px;
+  font-size: 12px;
+  color: rgba(17, 24, 39, 0.45);
+}
+
+.dogFoot {
+  margin-top: 6px;
+  margin-bottom: auto;
+  font-size: 12px;
+  color: rgba(17, 24, 39, 0.35);
+}

@@ -1,0 +1,32 @@
+/* Login 전용 */
+
+.loginTitle {
+  margin: 8px 0 0;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: #111827;
+}
+
+.loginSub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: rgba(17, 24, 39, 0.65);
+}
+
+.loginLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: auto;
+}
+
+/* 로그인은 회색 링크 */
+.linkBtn {
+  color: rgba(17, 24, 39, 0.75);
+}
+
+.sep {
+  color: rgba(17, 24, 39, 0.25);
+}

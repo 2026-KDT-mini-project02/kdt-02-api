@@ -1,0 +1,22 @@
+import styles from "./Button.module.css";
+
+export default function Button({
+  children,
+  variant = "primary",
+  onClick,
+  type = "button",
+  disabled = false,
+}) {
+  const cls = variant === "outline" ? styles.outline : styles.primary;
+
+  return (
+    <button
+      className={`${styles.base} ${cls}`}
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+}
