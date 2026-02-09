@@ -7,12 +7,11 @@
   - body 배경(그라데이션), 기본 폰트, 리셋(html/body/#root), 공통 색상 변수(:root) 등이 여기에 해당합니다.
 */
 
-*, *::before, *::after {
-  box-sizing: border-box;
+*, *::before, *::after { 
+  box-sizing: border-box; 
 }
 
-html,
-body {
+html,body {
   height: 100%;
 }
 
@@ -32,21 +31,19 @@ body {
       #FFFFFF 100%);
 
   background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 #root {
-  min-height: 100vh;
   min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: clamp(12px, 3vw, 20px);
 }
 
 /* 페이지가 들어갈 화면 (데스크톱에서도 폭 제한) */
 .appShell {
   width: min(420px, 100%);
-  min-height: 100vh;
   min-height: 100dvh;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }

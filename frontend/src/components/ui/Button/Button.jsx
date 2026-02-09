@@ -2,12 +2,17 @@ import styles from "./Button.module.css";
 
 export default function Button({
   children,
-  variant = "primary",
+  variant = "primary", // "primary" | "outline" | "dark"
   onClick,
   type = "button",
   disabled = false,
 }) {
-  const cls = variant === "outline" ? styles.outline : styles.primary;
+  const cls =
+    variant === "outline"
+      ? styles.outline
+      : variant === "dark"
+      ? styles.dark
+      : styles.primary;
 
   return (
     <button

@@ -28,3 +28,11 @@
   border: 2px solid rgba(47, 107, 255, 0.85);
   box-shadow: 0 12px 24px rgba(17, 24, 39, 0.06);
 }
+
+/* 다크 버튼 */
+.dark {
+  border: none;
+  background: #364153;
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.14);
+}

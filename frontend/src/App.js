@@ -6,8 +6,10 @@ import Signup from "./pages/Signup/Signup";
 import FindID from "./pages/FindID/FindID";
 import FindPW from "./pages/FindPW/FindPW";
 import DogOnboarding from "./pages/DogOnboarding/DogOnboarding";
-
-const Home = () => <div style={{ padding: 20 }}>Home</div>;
+import Home from "./pages/Home/Home";
+import Map from "./pages/Map/Map";
+import MyPage from "./pages/MyPage/MyPage";
+import Community from "./pages/Community/Community";
 
 export default function App() {
   return (
@@ -20,6 +22,9 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/dogOnboarding" element={<DogOnboarding />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/community" element={<Community />} />
         </Routes>
       </div>
     </BrowserRouter>

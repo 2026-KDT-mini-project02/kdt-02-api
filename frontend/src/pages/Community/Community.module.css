@@ -1,0 +1,168 @@
+.page {
+  min-height: 100vh;
+  background: #f5f6f8;
+  display: flex;
+  justify-content: center; /* ✅ 데스크톱 중앙 정렬 */
+}
+
+/* ✅ 실제 앱 화면 폭 */
+.container {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* ✅ FAB 기준점 */
+}
+
+.topArea {
+  padding: 14px 16px 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.header {
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.list {
+  flex: 1;
+  padding: 12px 16px 90px; /* 하단 nav + fab 공간 */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #eef0f3;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.06);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.badgeWalk {
+  background: #e8f7ee;
+  color: #137a3a;
+}
+.badgeMeet {
+  background: #efeaff;
+  color: #5b34d6;
+}
+.badgeShare {
+  background: #fff3e6;
+  color: #b45309;
+}
+
+.cardTitle {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.cardContent {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.45;
+
+  display: -webkit-box;
+  line-clamp: 2;            /* ✅ 경고 제거용 */
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tagRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.metaRow {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.metaLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  opacity: 0.6;
+}
+
+.metaRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metaIcon {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* FAB (+) : ✅ 컨테이너 기준으로 고정 */
+.fab {
+  position: absolute;
+  right: 16px;
+  bottom: 86px; /* BottomNav 위로 */
+
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 0;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.35);
+  cursor: pointer;
+}
+
+.fab:active {
+  transform: scale(0.98);
+}

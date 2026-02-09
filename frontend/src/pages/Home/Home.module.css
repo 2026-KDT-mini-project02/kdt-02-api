@@ -1,0 +1,140 @@
+.page {
+  min-height: 100dvh;
+  padding: 18px 16px calc(72px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  gap: 0;
+
+  background: linear-gradient(180deg, #e6f0ff 0%, #f4f6ff 45%, #ffffff 100%);
+}
+
+.topArea {
+  display: grid;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.left {
+  display: grid;
+  gap: 8px;
+}
+
+/* 날짜: 오늘(검정 bold) + n월 n일(#6A7282 regular) */
+.date {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.today {
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(17, 24, 39, 0.95);
+}
+
+.dayText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6A7282;
+}
+
+/* 온도 블록 */
+.tempRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 96px;
+}
+
+.tempNow {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(17, 24, 39, 0.95);
+}
+
+.degree {
+  font-size: 28px;
+  font-weight: 800;
+  margin-left: 2px;
+  color: rgba(17, 24, 39, 0.65);
+}
+
+.minMax {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.min {
+  color: #3b82f6;
+}
+
+.max {
+  color: #ef4444;
+}
+
+.right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 중앙 요약 */
+.summary {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding-top: 0;
+  margin-top: 6px;
+}
+
+.weatherIcon {
+  font-size: 42px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.weatherText {
+  font-size: 34px;
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.tipText {
+  font-size: 13px;
+  color: rgba(17, 24, 39, 0.55);
+  text-align: center;
+}
+
+.hero {
+  flex: 1;
+  display: grid;
+  place-items: end center;
+  min-height: 0;
+  margin-top: 8px;
+  padding-bottom: 6px;
+}
+
+.dog {
+  width: min(340px, 86vw);
+  max-height: 38dvh;
+  height: auto;
+  object-fit: contain;
+}
+
+.bottom {
+  margin-top: 10px;
+  display: grid;
+  gap: 0;
+}
