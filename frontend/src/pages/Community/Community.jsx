@@ -1,12 +1,21 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
 import SearchBar from "../../components/ui/SearchBar/SearchBar";
 import FilterChips from "../../components/ui/FilterChips/FilterChips";
+import CommunityWrite from "./CommunityWrite/CommunityWrite";
 import styles from "./Community.module.css";
 
 const TABS = ["전체", "산책 친구", "모임", "나눔"];
 
-const SUGGESTIONS = ["산책 친구", "모임", "나눔", "근처 공원", "강아지 옷 나눔", "댕친구"];
+const SUGGESTIONS = [
+  "산책 친구",
+  "모임",
+  "나눔",
+  "근처 공원",
+  "강아지 옷 나눔",
+  "댕친구",
+];
 
 const MOCK_POSTS = [
   {
@@ -47,15 +56,20 @@ const MOCK_POSTS = [
   },
 ];
 
-function typeBadgeClass(type) {
+function typeBadgeClass(type, styles) {
   if (type === "산책 친구") return styles.badgeWalk;
   if (type === "모임") return styles.badgeMeet;
   return styles.badgeShare;
 }
 
 export default function Community() {
+  const nav = useNavigate();
+
   const [keyword, setKeyword] = useState("");
   const [tab, setTab] = useState("전체");
+
+  // 글쓰기 모달 on/off
+  const [openWrite, setOpenWrite] = useState(false);
 
   const filtered = useMemo(() => {
     const q = keyword.trim();
@@ -67,17 +81,22 @@ export default function Community() {
     });
   }, [keyword, tab]);
 
-  const handleSearch = (text) => {
-    setKeyword(text);
-  };
+  const handleSearch = (text) => setKeyword(text);
 
-  const onCreate = () => {
-    alert("글쓰기(추후 /community/write 로 이동)");
+  // 페이지 이동 X → 모달 열기
+  const onCreate = () => setOpenWrite(true);
+
+  // 작성 완료 payload 받는 곳(나중에 API POST 연결)
+  const handleSubmitPost = (payload) => {
+    console.log("작성 payload:", payload);
+    // API 붙이면 여기서 POST 요청
+    // 작성 후 리스트에 즉시 반영하려면 state로 posts 관리하면 됨
   };
 
   return (
     <div className={styles.page}>
       <div className={styles.container}>
+        {/* 상단 */}
         <div className={styles.topArea}>
           <div className={styles.header}>
             <div className={styles.title}>우리 동네 댕댕이</div>
@@ -99,9 +118,20 @@ export default function Community() {
         {/* 리스트 */}
         <div className={styles.list}>
           {filtered.map((post) => (
-            <div key={post.id} className={styles.card}>
+            <div
+              key={post.id}
+              className={styles.card}
+              role="button"
+              tabIndex={0}
+              onClick={() => nav(`/community/${post.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") nav(`/community/${post.id}`);
+              }}
+            >
               <div className={styles.cardTop}>
-                <span className={`${styles.badge} ${typeBadgeClass(post.type)}`}>
+                <span
+                  className={`${styles.badge} ${typeBadgeClass(post.type, styles)}`}
+                >
                   {post.type}
                 </span>
               </div>
@@ -136,6 +166,12 @@ export default function Community() {
         <button className={styles.fab} onClick={onCreate} aria-label="글쓰기">
           +
         </button>
+
+        <CommunityWrite
+          isOpen={openWrite}
+          onClose={() => setOpenWrite(false)}
+          onSubmit={handleSubmitPost}
+        />
 
         <BottomNav />
       </div>
