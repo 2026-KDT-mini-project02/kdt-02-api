@@ -1,0 +1,36 @@
+.chips {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chip:active {
+  transform: scale(0.98);
+}
+
+.active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
