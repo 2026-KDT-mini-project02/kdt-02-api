@@ -1,0 +1,96 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6f8;
+}
+
+.topArea {
+  padding: 14px 16px 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.searchBar {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: #f1f3f5;
+}
+
+.searchIcon {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.searchInput {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+}
+
+.chips {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chip:active {
+  transform: scale(0.98);
+}
+
+.active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.mapArea {
+  flex: 1;
+  position: relative;
+  background: #eceff3;
+}
+
+.centerHint {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 0.7;
+}
+
+.pin {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.hintText {
+  font-size: 13px;
+  color: #4b5563;
+}
