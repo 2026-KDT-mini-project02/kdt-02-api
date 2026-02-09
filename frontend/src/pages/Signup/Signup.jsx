@@ -90,7 +90,7 @@ export default function Signup() {
         {
           method: "GET",
           credentials: "include",
-        }
+        },
       );
 
       if (!res.ok) {
@@ -100,12 +100,20 @@ export default function Signup() {
         return;
       }
 
-      const data = await res.json().catch(() => ({}));
-      const available = !!data.available;
+      // 1. JSON 값을 가져오되, 실패하면 null을 반환하게 합니다.
+      const data = await res.json().catch(() => null);
+
+      // 2. data가 null이 아니고, 값이 정확히 false일 때만 '사용 가능'으로 판단합니다.
+      // 백엔드가 준 false(중복없음)를 받았을 때 available이 true가 됩니다.
+      const available = data === false;
 
       setIdChecked(true);
       setIdOk(available);
-      setIdMsg(available ? "사용 가능한 아이디입니다." : "이미 사용 중인 아이디입니다.");
+      setIdMsg(
+        available
+          ? "사용 가능한 아이디입니다."
+          : "이미 사용 중인 아이디입니다.",
+      );
     } catch (e) {
       setIdChecked(true);
       setIdOk(false);
@@ -123,7 +131,8 @@ export default function Signup() {
     if (!idChecked || !idOk) return setMsg("아이디 중복확인을 해주세요.");
     if (pw.length < 8) return setMsg("비밀번호는 8자 이상 입력해주세요.");
     if (pw !== pw2) return setMsg("비밀번호가 일치하지 않습니다.");
-    if (!agreeService || !agreePrivacy) return setMsg("필수 약관에 동의해주세요.");
+    if (!agreeService || !agreePrivacy)
+      return setMsg("필수 약관에 동의해주세요.");
 
     setSigning(true);
     try {
@@ -133,12 +142,12 @@ export default function Signup() {
         credentials: "include",
         body: JSON.stringify({
           name,
-          userId,
+          userid: userId,
           email,
           password: pw,
-          phone,
-          agreeService,
-          agreePrivacy,
+          phonenumber: phone,
+          agreeservice: agreeService, // 리액트 변수 : 백엔드 키
+          agreeprivacy: agreePrivacy, // 리액트 변수 : 백엔드 키
         }),
       });
 
@@ -153,7 +162,9 @@ export default function Signup() {
       const hasDog = !!data.hasDog;
 
       // 가입 완료 → 반려견 등록 여부에 따라 이동
-      navigate(hasDog ? "/home" : "/dog/onboarding");
+      navigate(hasDog ? "/home" : "/dogOnboarding", {
+        state: { userId: userId },
+      });
     } catch (e) {
       setMsg("서버에 연결할 수 없습니다.");
     } finally {
@@ -174,7 +185,11 @@ export default function Signup() {
 
         <div className="idRow">
           <div className="idInput">
-            <TextField placeholder="아이디" value={userId} onChange={onChangeUserId} />
+            <TextField
+              placeholder="아이디"
+              value={userId}
+              onChange={onChangeUserId}
+            />
           </div>
 
           <button
@@ -189,7 +204,11 @@ export default function Signup() {
 
         {idMsg && <p className={idOk ? "idMsgOk" : "idMsgBad"}>{idMsg}</p>}
 
-        <TextField placeholder="이메일" value={email} onChange={bind(setEmail)} />
+        <TextField
+          placeholder="이메일"
+          value={email}
+          onChange={bind(setEmail)}
+        />
         <TextField
           placeholder="비밀번호 (8자 이상)"
           type="password"
@@ -216,7 +235,9 @@ export default function Signup() {
             checked={agreeService}
             onChange={(e) => setAgreeService(e.target.checked)}
           />
-          <span><b>[필수]</b> 서비스 이용약관 동의</span>
+          <span>
+            <b>[필수]</b> 서비스 이용약관 동의
+          </span>
         </label>
 
         <label className="agreeRow">
@@ -225,7 +246,9 @@ export default function Signup() {
             checked={agreePrivacy}
             onChange={(e) => setAgreePrivacy(e.target.checked)}
           />
-          <span><b>[필수]</b> 개인정보 수집 및 이용 동의</span>
+          <span>
+            <b>[필수]</b> 개인정보 수집 및 이용 동의
+          </span>
         </label>
       </div>
 
@@ -239,7 +262,11 @@ export default function Signup() {
 
       <div className="signupBottom">
         <span className="muted">이미 계정이 있으신가요?</span>
-        <button className="signupLink" type="button" onClick={() => navigate("/")}>
+        <button
+          className="signupLink"
+          type="button"
+          onClick={() => navigate("/")}
+        >
           로그인하기
         </button>
       </div>
