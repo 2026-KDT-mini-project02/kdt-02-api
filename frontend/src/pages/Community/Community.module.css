@@ -45,6 +45,13 @@
   gap: 12px;
 }
 
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 24px 0;
+  font-size: 13px;
+}
+
 .card {
   background: #ffffff;
   border: 1px solid #eef0f3;

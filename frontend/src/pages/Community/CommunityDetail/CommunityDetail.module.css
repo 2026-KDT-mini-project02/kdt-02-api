@@ -18,10 +18,81 @@
   height: 52px;
   background: #ffffff;
   display: flex;
+
+.editBtn {
+  margin-left: auto;
+  border: none;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
   align-items: center;
   gap: 10px;
   padding: 0 12px;
   border-bottom: 1px solid #eef0f3;
+}
+
+.deleteBtn {
+  margin-left: 6px;
+  border: none;
+  background: #fee2e2;
+  color: #b91c1c;
+
+.editBox {
+  display: grid;
+  gap: 10px;
+}
+
+.editSelect {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.editInput {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.editTextarea {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  background: #ffffff;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.editExtra {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.saveBtn {
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .backBtn {
@@ -133,6 +204,12 @@
   display: inline-flex;
   gap: 6px;
   align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
 }
 
 .divider {
@@ -207,6 +284,15 @@
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.commentDelete {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .cName {

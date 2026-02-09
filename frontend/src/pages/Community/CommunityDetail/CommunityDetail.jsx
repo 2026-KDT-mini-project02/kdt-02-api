@@ -1,68 +1,160 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BottomNav from "../../../components/ui/BottomNav/BottomNav";
 import styles from "./CommunityDetail.module.css";
 
-const MOCK_POSTS = [
-  {
-    id: 1,
-    type: "산책 친구",
-    title: "같이 저녁 산책하실 분 구해요 🐶",
-    content:
-      "저희 용이(골든리트리버, 3살)랑 같이 산책할 친구 구합니다!\n매일 저녁 7시쯤 근처 공원에서 산책해요.\n관심 있으시면 댓글 주세요!",
-    tags: ["#골든리트리버", "#저녁산책"],
-    place: "민주구 창천동",
-    timeAgo: "10분 전",
-    likes: 12,
-    author: "강아지러버",
-  },
-  {
-    id: 2,
-    type: "모임",
-    title: "주말 소형견 모임 참여하실 분!",
-    content:
-      "이번 주말 토요일 오전 10시에 반려견 공원에서 소형견 모임 있어요.\n강아지들 사회성 기르기 좋아요!",
-    tags: ["#소형견", "#주말"],
-    place: "민주구 호차동",
-    timeAgo: "1시간 전",
-    likes: 24,
-    author: "댕댕모임장",
-  },
-  {
-    id: 3,
-    type: "나눔",
-    title: "강아지 옷 나눔합니다",
-    content:
-      "사이즈 M 위주로 몇 벌 있어요.\n깨끗하고 상태 좋아요! 필요하신 분 댓글 주세요.",
-    tags: ["#나눔", "#강아지옷"],
-    place: "민주구 창천동",
-    timeAgo: "2시간 전",
-    likes: 7,
-    author: "나눔천사",
-  },
-];
 
 export default function CommunityDetail() {
   const nav = useNavigate();
   const { id } = useParams();
   const postId = Number(id);
 
-  const post = useMemo(() => MOCK_POSTS.find((p) => p.id === postId), [postId]);
-
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editCategory, setEditCategory] = useState("산책 친구");
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editPlace, setEditPlace] = useState("");
+  const [editTags, setEditTags] = useState("");
+  const [commentName, setCommentName] = useState("");
   const [commentText, setCommentText] = useState("");
-  const [commentList, setCommentList] = useState([
-    { id: 1, name: "댕댕이집사", time: "2시간 전", text: "저도 관심있어요! 연락 주세요~" },
-    { id: 2, name: "강아지사랑", time: "5시간 전", text: "좋은 정보 감사합니다!" },
-  ]);
+  const [commentList, setCommentList] = useState([]);
 
-  const onAddComment = () => {
-    const t = commentText.trim();
-    if (!t) return;
-    setCommentList((prev) => [{ id: Date.now(), name: "나", time: "방금", text: t }, ...prev]);
-    setCommentText("");
+  useEffect(() => {
+    const fetchDetail = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/community/${postId}`);
+        if (!res.ok) throw new Error("게시글 조회 실패");
+        const data = await res.json();
+        setPost(data);
+        setCommentList(data.comments || []);
+        setEditCategory(data.type || "산책 친구");
+        setEditTitle(data.title || "");
+        setEditContent(data.content || "");
+        setEditPlace(data.place || "");
+        setEditTags((data.tags || []).join(" "));
+      } catch (error) {
+        console.error(error);
+        setPost(null);
+        setCommentList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (Number.isFinite(postId)) {
+      fetchDetail();
+    }
+  }, [postId]);
+
+  const onAddComment = async () => {
+    const name = commentName.trim() || "익명";
+    const text = commentText.trim();
+    if (!text) return;
+    try {
+      const res = await fetch(`/api/community/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, text }),
+      });
+      if (!res.ok) throw new Error("댓글 작성 실패");
+      const created = await res.json();
+      setCommentList((prev) => [created, ...prev]);
+      setCommentText("");
+    } catch (error) {
+      console.error(error);
+      alert("댓글 작성에 실패했습니다.");
+    }
   };
 
-  if (!post) {
+  const onLike = async () => {
+    try {
+      const res = await fetch(`/api/community/${postId}/like`, { method: "POST" });
+      if (!res.ok) throw new Error("좋아요 실패");
+      const data = await res.json();
+      setPost(data);
+      setCommentList(data.comments || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const onDeletePost = async () => {
+    if (!window.confirm("게시글을 삭제할까요?")) return;
+    try {
+      const res = await fetch(`/api/community/${postId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("삭제 실패");
+      nav(-1);
+    } catch (error) {
+      console.error(error);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
+  const onDeleteComment = async (commentId) => {
+    if (!window.confirm("댓글을 삭제할까요?")) return;
+    try {
+      const res = await fetch(`/api/community/comments/${commentId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("댓글 삭제 실패");
+      setCommentList((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (error) {
+      console.error(error);
+      alert("댓글 삭제에 실패했습니다.");
+    }
+  };
+
+  const onSaveEdit = async () => {
+    try {
+      const payload = {
+        category: editCategory,
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        place: editPlace.trim(),
+        tags: editTags
+          .split(/[\s,]+/)
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+      };
+      if (!payload.title || !payload.content) {
+        alert("제목과 내용을 입력해주세요.");
+        return;
+      }
+      const res = await fetch(`/api/community/${postId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("수정 실패");
+      const updated = await res.json();
+      setPost(updated);
+      setCommentList(updated.comments || []);
+      setEditMode(false);
+    } catch (error) {
+      console.error(error);
+      alert("수정에 실패했습니다.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.topbar}>
+            <button className={styles.backBtn} onClick={() => nav(-1)}>←</button>
+            <div className={styles.topTitle}>게시글</div>
+          </div>
+          <div className={styles.notFound}>불러오는 중...</div>
+          <BottomNav />
+        </div>
+      </div>
+    );
+  }
+
+  if (!post && !loading) {
     return (
       <div className={styles.page}>
         <div className={styles.container}>
@@ -85,11 +177,42 @@ export default function CommunityDetail() {
             ←
           </button>
           <div className={styles.topTitle}>게시글</div>
+          <button
+            className={styles.editBtn}
+            onClick={() => setEditMode((prev) => !prev)}
+          >
+            {editMode ? "취소" : "수정"}
+          </button>
+          <button className={styles.deleteBtn} onClick={onDeletePost}>
+            삭제
+          </button>
         </div>
 
         <div className={styles.body}>
-          <div className={styles.badge}>{post.type}</div>
-          <div className={styles.title}>{post.title}</div>
+          {editMode ? (
+            <div className={styles.editBox}>
+              <select
+                className={styles.editSelect}
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value)}
+              >
+                <option value="산책 친구">산책 친구</option>
+                <option value="모임">모임</option>
+                <option value="나눔">나눔</option>
+              </select>
+              <input
+                className={styles.editInput}
+                placeholder="제목"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </div>
+          ) : (
+            <>
+              <div className={styles.badge}>{post.type}</div>
+              <div className={styles.title}>{post.title}</div>
+            </>
+          )}
 
           <div className={styles.profileRow}>
             <div className={styles.avatar}>{post.author?.[0] || "댕"}</div>
@@ -101,7 +224,36 @@ export default function CommunityDetail() {
             </div>
           </div>
 
-          <div className={styles.content}>{post.content}</div>
+          {editMode ? (
+            <textarea
+              className={styles.editTextarea}
+              placeholder="내용"
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+            />
+          ) : (
+            <div className={styles.content}>{post.content}</div>
+          )}
+
+          {editMode && (
+            <div className={styles.editExtra}>
+              <input
+                className={styles.editInput}
+                placeholder="위치 (선택)"
+                value={editPlace}
+                onChange={(e) => setEditPlace(e.target.value)}
+              />
+              <input
+                className={styles.editInput}
+                placeholder="태그 (띄어쓰기/콤마 구분)"
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+              />
+              <button className={styles.saveBtn} onClick={onSaveEdit}>
+                수정 저장
+              </button>
+            </div>
+          )}
 
           <div className={styles.tagRow}>
             {post.tags.map((t) => (
@@ -112,7 +264,9 @@ export default function CommunityDetail() {
           </div>
 
           <div className={styles.actions}>
-            <div className={styles.actionItem}>♡ 좋아요 {post.likes}</div>
+            <button className={styles.actionItem} onClick={onLike}>
+              ♡ 좋아요 {post.likes}
+            </button>
             <div className={styles.actionItem}>💬 댓글 {commentList.length}</div>
           </div>
 
@@ -120,6 +274,14 @@ export default function CommunityDetail() {
 
           <div className={styles.commentTitle}>댓글 {commentList.length}</div>
 
+          <div className={styles.commentInputRow}>
+            <input
+              className={styles.commentInput}
+              placeholder="닉네임"
+              value={commentName}
+              onChange={(e) => setCommentName(e.target.value)}
+            />
+          </div>
           <div className={styles.commentInputRow}>
             <input
               className={styles.commentInput}
@@ -143,6 +305,12 @@ export default function CommunityDetail() {
                   <div className={styles.cTop}>
                     <span className={styles.cName}>{c.name}</span>
                     <span className={styles.cTime}>{c.time}</span>
+                    <button
+                      className={styles.commentDelete}
+                      onClick={() => onDeleteComment(c.id)}
+                    >
+                      삭제
+                    </button>
                   </div>
                   <div className={styles.cText}>{c.text}</div>
                 </div>
