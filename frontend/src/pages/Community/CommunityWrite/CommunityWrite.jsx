@@ -5,16 +5,20 @@ const CATEGORIES = ["산책 친구", "모임", "나눔"];
 
 export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
   const [category, setCategory] = useState("산책 친구");
+  const [author, setAuthor] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [place, setPlace] = useState("");
   const [tags, setTags] = useState("");
 
   // 열릴 때 초기화(원하면 제거 가능)
   useEffect(() => {
     if (!isOpen) return;
     setCategory("산책 친구");
+    setAuthor("");
     setTitle("");
     setContent("");
+    setPlace("");
     setTags("");
   }, [isOpen]);
 
@@ -37,8 +41,10 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
 
     const payload = {
       category,
+      author: author.trim() || "익명",
       title: title.trim(),
       content: content.trim(),
+      place: place.trim(),
       tags: tags
         .split(/[,\s]+/)
         .map((t) => t.trim())
@@ -82,6 +88,14 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
             ))}
           </select>
 
+          <label className={styles.label}>작성자</label>
+          <input
+            className={styles.input}
+            placeholder="닉네임"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+          />
+
           <label className={styles.label}>제목</label>
           <input
             className={styles.input}
@@ -96,6 +110,14 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
             placeholder="내용을 입력하세요"
             value={content}
             onChange={(e) => setContent(e.target.value)}
+          />
+
+          <label className={styles.label}>위치 (선택)</label>
+          <input
+            className={styles.input}
+            placeholder="예: 민주구 창천동"
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
           />
 
           <label className={styles.label}>태그 (선택)</label>
