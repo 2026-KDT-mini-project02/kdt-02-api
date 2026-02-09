@@ -62,6 +62,28 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
     onClose?.();
   };
 
+  const handleTagInput = (value) => {
+    setTags(value);
+  };
+
+  const handleTagKeyDown = (e) => {
+    if (e.key === " ") {
+      e.preventDefault();
+      const raw = tags.trim();
+      if (!raw) return;
+
+      const parts = raw.split(/[\s,]+/).filter(Boolean);
+      const lastIndex = parts.length - 1;
+      if (lastIndex < 0) return;
+
+      const last = parts[lastIndex];
+      const normalizedLast = last.startsWith("#") ? last : `#${last}`;
+      parts[lastIndex] = normalizedLast;
+
+      setTags(parts.join(" ") + " ");
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -125,7 +147,8 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
             className={styles.input}
             placeholder="#태그를 입력하세요"
             value={tags}
-            onChange={(e) => setTags(e.target.value)}
+            onChange={(e) => handleTagInput(e.target.value)}
+            onKeyDown={handleTagKeyDown}
           />
 
           <div className={styles.actions}>

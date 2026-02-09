@@ -139,6 +139,28 @@ export default function CommunityDetail() {
     }
   };
 
+  const handleEditTagsInput = (value) => {
+    setEditTags(value);
+  };
+
+  const handleEditTagsKeyDown = (e) => {
+    if (e.key === " ") {
+      e.preventDefault();
+      const raw = editTags.trim();
+      if (!raw) return;
+
+      const parts = raw.split(/[\s,]+/).filter(Boolean);
+      const lastIndex = parts.length - 1;
+      if (lastIndex < 0) return;
+
+      const last = parts[lastIndex];
+      const normalizedLast = last.startsWith("#") ? last : `#${last}`;
+      parts[lastIndex] = normalizedLast;
+
+      setEditTags(parts.join(" ") + " ");
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -247,7 +269,8 @@ export default function CommunityDetail() {
                 className={styles.editInput}
                 placeholder="태그 (띄어쓰기/콤마 구분)"
                 value={editTags}
-                onChange={(e) => setEditTags(e.target.value)}
+                onChange={(e) => handleEditTagsInput(e.target.value)}
+                onKeyDown={handleEditTagsKeyDown}
               />
               <button className={styles.saveBtn} onClick={onSaveEdit}>
                 수정 저장
