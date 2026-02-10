@@ -163,7 +163,7 @@ export default function Signup() {
 
       // 가입 완료 → 반려견 등록 여부에 따라 이동
       navigate(hasDog ? "/home" : "/dogOnboarding", {
-        state: { userId: userId },
+        state: { userId: userId, userName: name},
       });
     } catch (e) {
       setMsg("서버에 연결할 수 없습니다.");

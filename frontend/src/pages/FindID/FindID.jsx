@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 import "../../styles/authCommon.css";
 import "./FindID.css";
@@ -15,13 +16,35 @@ export default function FindID() {
   const [name, setName] = useState("");
   const [msg, setMsg] = useState("");
 
-  const onFindId = () => {
+  const onFindId = async () => {
+    // 2. async 추가
     setMsg("");
+
     if (!email || !name) {
       setMsg("이메일과 이름을 입력해주세요.");
       return;
     }
-    setMsg("아이디 찾기 요청 준비 완료");
+
+    try {
+      // 3. 실제 백엔드 API 호출
+      const response = await axios.get(
+        "http://localhost:8080/api/auth/find-id",
+        {
+          params: { name, email }, // 백엔드 @RequestParam에 전달됨
+        },
+      );
+
+      // 4. 성공 시 서버에서 보낸 아이디를 메시지에 출력
+      setMsg(`찾으시는 아이디는 [ ${response.data} ] 입니다.`);
+    } catch (error) {
+      // 5. 실패 시 (404 등) 에러 메시지 출력
+      if (error.response && error.response.status === 404) {
+        setMsg("일치하는 회원 정보가 없습니다.");
+      } else {
+        setMsg("서버 통신 중 오류가 발생했습니다.");
+      }
+      console.error(error);
+    }
   };
 
   return (
@@ -29,12 +52,22 @@ export default function FindID() {
       <div className="authTop">
         <IconTile src="/icon.png" alt="로고" />
         <h1 className="findIdTitle">아이디를 잊으셨나요?</h1>
-        <p className="findIdSub">가입 시 입력한 정보로 아이디를 찾을 수 있습니다</p>
+        <p className="findIdSub">
+          가입 시 입력한 정보로 아이디를 찾을 수 있습니다
+        </p>
       </div>
 
       <div className="authForm">
-        <TextField placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} />
-        <TextField placeholder="이름" value={name} onChange={e => setName(e.target.value)} />
+        <TextField
+          placeholder="이메일"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <TextField
+          placeholder="이름"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </div>
 
       {msg && <p className="authMsg">{msg}</p>}

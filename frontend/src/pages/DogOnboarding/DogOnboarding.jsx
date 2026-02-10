@@ -52,7 +52,7 @@ export default function DogOnboarding() {
     setSaving(true);
     try {
       // 1. 주소 확인: 아까 Controller에서 @RequestMapping("/api/dog")으로 만들었으므로 주소를 맞춰야 합니다.
-      await fetch("http://localhost:8080/api/dog/register", {
+      const response = await fetch("http://localhost:8080/api/dog/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -65,9 +65,27 @@ export default function DogOnboarding() {
           description: intro.trim(), // 👈 intro가 아니라 description (Entity 필드명)
         }),
       });
+      if (response.ok) {
+        // 1. 기존에 남아있던 잘못된 유저 정보(김이박 등)를 완전히 삭제
+        localStorage.removeItem("user");
 
-      setMsg("반려견 정보 저장 완료!");
-      navigate("/home");
+        // 2. 현재 가입한 사용자의 정보를 새로 저장
+        // (가입 페이지에서 넘겨받은 userIdFromSignup 사용)
+        const newUser = {
+          userid: userIdFromSignup,
+          name: location.state?.userName || "새 사용자", // 가입 때 이름을 넘겨줬다면 사용
+        };
+
+        localStorage.setItem("user", JSON.stringify(newUser));
+
+        setMsg("반려견 정보 저장 완료!");
+
+        // 3. 모든 정보가 갱신된 후 이동
+        navigate("/home");
+      } else {
+        setMsg("저장에 실패했습니다.");
+      }
+      // ✅ [여기까지 추가]
     } catch (e) {
       setMsg("서버에 연결할 수 없습니다.");
     } finally {
