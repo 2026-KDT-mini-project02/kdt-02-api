@@ -13,6 +13,9 @@ import MyPage from "./pages/MyPage/MyPage";
 import Community from "./pages/Community/Community";
 import CommunityDetail from "./pages/Community/CommunityDetail/CommunityDetail";
 
+// ✅ Record import
+import Record from "./pages/Record/Record";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -26,8 +29,12 @@ export default function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/map" element={<Map />} />
           <Route path="/mypage" element={<MyPage />} />
+
           <Route path="/community" element={<Community />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
+
+          {/* ⭐ 산책 기록 페이지 */}
+          <Route path="/record" element={<Record />} />
         </Routes>
       </div>
     </BrowserRouter>
