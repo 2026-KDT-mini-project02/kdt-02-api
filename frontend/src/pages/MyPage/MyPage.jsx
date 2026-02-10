@@ -1,15 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
 import styles from "./MyPage.module.css";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react"; 
 
 export default function MyPage() {
   const navigate = useNavigate();
 
   // ✅ 사용자 정보 상태
   const [user, setUser] = useState({ name: "", userid: "" });
-
+  
   // ✅ 반려견 목록 상태
   const [dogs, setDogs] = useState([]);
 
@@ -17,32 +16,56 @@ export default function MyPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 로그인 시 저장했던 'user' 객체를 가져옴
-    const storedUser = localStorage.getItem("user");
+    // ✅ 세션 확인 - 서버에서 현재 로그인 상태 체크
+    checkSession();
+  }, []);
 
-    if (storedUser) {
-      const userData = JSON.parse(storedUser);
+  // ✅ 세션 확인 함수
+  const checkSession = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/session", {
+        method: "GET",
+        credentials: "include" // 세션 쿠키 포함
+      });
+
+      if (!response.ok) {
+        // 세션이 없으면 로그인 페이지로
+        alert("로그인이 필요합니다.");
+        navigate("/");
+        return;
+      }
+
+      const userData = await response.json();
       setUser({
         name: userData.name,
         userid: userData.userid,
       });
 
-      // ✅ 반려견 목록 불러오기
+      // 반려견 목록 불러오기
       fetchDogs(userData.userid);
-    } else {
-      // 로그인 정보가 없으면 로그인 페이지로 이동
+
+    } catch (error) {
+      console.error("세션 확인 실패:", error);
+      alert("로그인이 필요합니다.");
       navigate("/");
     }
-  }, [navigate]);
+  };
 
   // ✅ 반려견 목록 가져오기 함수
   const fetchDogs = async (userid) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/dog/list`, {
-        params: { userid: userid },
+      const response = await fetch(`http://localhost:8080/api/dog/list?userid=${userid}`, {
+        method: "GET",
+        credentials: "include"
       });
-      setDogs(response.data);
-      console.log("반려견 목록:", response.data);
+
+      if (!response.ok) {
+        throw new Error("반려견 목록 조회 실패");
+      }
+
+      const data = await response.json();
+      setDogs(data);
+      console.log("반려견 목록:", data);
     } catch (error) {
       console.error("반려견 목록 조회 실패:", error);
       alert("반려견 정보를 불러오는데 실패했습니다.");
@@ -62,7 +85,7 @@ export default function MyPage() {
     breed: "",
     age: "",
     weight: "",
-    description: "",
+    description: ""
   });
 
   const onChange = (key) => (e) => {
@@ -71,26 +94,12 @@ export default function MyPage() {
 
   const closeAddModal = () => {
     setOpenAddDog(false);
-    setForm({
-      id: null,
-      name: "",
-      breed: "",
-      age: "",
-      weight: "",
-      description: "",
-    });
+    setForm({ id: null, name: "", breed: "", age: "", weight: "", description: "" });
   };
 
   const closeEditModal = () => {
     setOpenEditDog(false);
-    setForm({
-      id: null,
-      name: "",
-      breed: "",
-      age: "",
-      weight: "",
-      description: "",
-    });
+    setForm({ id: null, name: "", breed: "", age: "", weight: "", description: "" });
   };
 
   // ✅ 반려견 추가 함수
@@ -118,23 +127,31 @@ export default function MyPage() {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/dog/register",
-        {
+      const response = await fetch("http://localhost:8080/api/dog/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
           userid: user.userid,
           name: form.name,
           breed: form.breed,
           age: parseInt(form.age),
           weight: parseFloat(form.weight),
-          description: form.description || "건강 상태: 좋음",
-        },
-      );
+          description: form.description || "건강 상태: 좋음"
+        })
+      });
 
-      console.log("반려견 등록 성공:", response.data);
+      if (!response.ok) {
+        throw new Error("반려견 등록 실패");
+      }
+
+      const result = await response.text();
+      console.log("반려견 등록 성공:", result);
       alert("반려견이 추가되었습니다!");
 
       closeAddModal();
       fetchDogs(user.userid);
+
     } catch (error) {
       console.error("반려견 등록 실패:", error);
       alert("반려견 추가 중 오류가 발생했습니다.");
@@ -149,7 +166,7 @@ export default function MyPage() {
       breed: dog.breed,
       age: dog.age.toString(),
       weight: dog.weight.toString(),
-      description: dog.description || "",
+      description: dog.description || ""
     });
     setOpenEditDog(true);
   };
@@ -179,22 +196,30 @@ export default function MyPage() {
     }
 
     try {
-      const response = await axios.put(
-        `http://localhost:8080/api/dog/update/${form.id}`,
-        {
+      const response = await fetch(`http://localhost:8080/api/dog/update/${form.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
           name: form.name,
           breed: form.breed,
           age: parseInt(form.age),
           weight: parseFloat(form.weight),
-          description: form.description || "건강 상태: 좋음",
-        },
-      );
+          description: form.description || "건강 상태: 좋음"
+        })
+      });
 
-      console.log("반려견 수정 성공:", response.data);
+      if (!response.ok) {
+        throw new Error("반려견 수정 실패");
+      }
+
+      const result = await response.text();
+      console.log("반려견 수정 성공:", result);
       alert("반려견 정보가 수정되었습니다!");
 
       closeEditModal();
       fetchDogs(user.userid);
+
     } catch (error) {
       console.error("반려견 수정 실패:", error);
       alert("반려견 수정 중 오류가 발생했습니다.");
@@ -208,23 +233,48 @@ export default function MyPage() {
     }
 
     try {
-      const response = await axios.delete(
-        `http://localhost:8080/api/dog/delete/${dogId}`,
-      );
-      console.log("반려견 삭제 성공:", response.data);
+      const response = await fetch(`http://localhost:8080/api/dog/delete/${dogId}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        throw new Error("반려견 삭제 실패");
+      }
+
+      const result = await response.text();
+      console.log("반려견 삭제 성공:", result);
       alert("반려견 정보가 삭제되었습니다.");
 
       fetchDogs(user.userid);
+
     } catch (error) {
       console.error("반려견 삭제 실패:", error);
       alert("반려견 삭제 중 오류가 발생했습니다.");
     }
   };
 
-  // ✅ 로그아웃 함수
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
+  // ✅ 로그아웃 함수 (세션 무효화)
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (response.ok) {
+        // localStorage도 정리
+        localStorage.removeItem("user");
+        
+        alert("로그아웃 되었습니다.");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+      // 에러가 나도 로그인 페이지로 이동
+      localStorage.removeItem("user");
+      navigate("/");
+    }
   };
 
   return (
@@ -255,13 +305,7 @@ export default function MyPage() {
           {/* ✅ 로딩 중일 때 */}
           {loading && (
             <div className={styles.card}>
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "20px",
-                  color: "#6b7280",
-                }}
-              >
+              <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>
                 로딩 중...
               </div>
             </div>
@@ -270,57 +314,44 @@ export default function MyPage() {
           {/* ✅ 반려견이 없을 때 */}
           {!loading && dogs.length === 0 && (
             <div className={styles.card}>
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "20px",
-                  color: "#6b7280",
-                }}
-              >
+              <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>
                 등록된 반려견이 없습니다.
               </div>
             </div>
           )}
 
           {/* ✅ 반려견 목록 표시 */}
-          {!loading &&
-            dogs.map((dog) => (
-              <div
-                key={dog.id}
-                className={`${styles.card} ${styles.dogCard}`}
-                style={{ marginBottom: "10px" }}
-              >
-                <div className={styles.dogRow}>
-                  <img className={styles.dogImg} src="/dog.png" alt="dog" />
-                  <div className={styles.dogText}>
-                    <div className={styles.dogName}>{dog.name}</div>
-                    <div className={styles.dogMeta}>
-                      {dog.age}살 · {dog.weight}kg · {dog.breed}
-                    </div>
-                    <div className={styles.dogNote}>
-                      ❤️ {dog.description || "건강 상태: 좋음"}
-                    </div>
+          {!loading && dogs.map((dog) => (
+            <div key={dog.id} className={`${styles.card} ${styles.dogCard}`} style={{ marginBottom: "10px" }}>
+              <div className={styles.dogRow}>
+                <img className={styles.dogImg} src="/dog.png" alt="dog" />
+                <div className={styles.dogText}>
+                  <div className={styles.dogName}>{dog.name}</div>
+                  <div className={styles.dogMeta}>
+                    {dog.age}살 · {dog.weight}kg · {dog.breed}
                   </div>
-                </div>
-
-                <div className={styles.buttonRow}>
-                  <button
-                    className={styles.subButton}
-                    onClick={() => openEditModal(dog)}
-                    type="button"
-                  >
-                    프로필 수정
-                  </button>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => onDeleteDog(dog.id, dog.name)}
-                    type="button"
-                  >
-                    삭제
-                  </button>
+                  <div className={styles.dogNote}>❤️ {dog.description || "건강 상태: 좋음"}</div>
                 </div>
               </div>
-            ))}
+
+              <div className={styles.buttonRow}>
+                <button
+                  className={styles.subButton}
+                  onClick={() => openEditModal(dog)}
+                  type="button"
+                >
+                  프로필 수정
+                </button>
+                <button
+                  className={styles.deleteButton}
+                  onClick={() => onDeleteDog(dog.id, dog.name)}
+                  type="button"
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          ))}
 
           {/* ✅ 반려견 추가 버튼 */}
           <button

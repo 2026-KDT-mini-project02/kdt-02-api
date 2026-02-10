@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import "../../styles/authCommon.css";
 import "./DogOnboarding.css";
@@ -10,21 +10,52 @@ import Button from "../../components/ui/Button/Button";
 
 export default function DogOnboarding() {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const userIdFromSignup = location.state?.userId || ""; // 👈 3. 데이터 추출
+  // ✅ 세션에서 가져온 사용자 정보
+  const [user, setUser] = useState({ userid: "", name: "" });
+  
   const [dogName, setDogName] = useState("");
   const [breed, setBreed] = useState("");
-
-  // ✅ 이제 필수
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
-
-  // ✅ 선택(소개글)
   const [intro, setIntro] = useState("");
 
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ 페이지 로드 시 세션 확인
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  const checkSession = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/auth/session", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        alert("로그인이 필요합니다.");
+        navigate("/");
+        return;
+      }
+
+      const userData = await res.json();
+      setUser({
+        userid: userData.userid,
+        name: userData.name
+      });
+      
+      console.log("세션 확인 완료:", userData);
+      setLoading(false);
+    } catch (error) {
+      console.error("세션 확인 실패:", error);
+      alert("로그인이 필요합니다.");
+      navigate("/");
+    }
+  };
 
   const onSaveDog = async () => {
     setMsg("");
@@ -51,47 +82,68 @@ export default function DogOnboarding() {
 
     setSaving(true);
     try {
-      // 1. 주소 확인: 아까 Controller에서 @RequestMapping("/api/dog")으로 만들었으므로 주소를 맞춰야 합니다.
+      console.log("반려견 등록 시도:", {
+        userid: user.userid,
+        name: dogName,
+        breed: breed,
+        age: ageNum,
+        weight: weightNum,
+        description: intro.trim() || "건강 상태: 좋음"
+      });
+
       const response = await fetch("http://localhost:8080/api/dog/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        credentials: "include", // ✅ 세션 쿠키 포함
         body: JSON.stringify({
-          userid: userIdFromSignup,
-          name: dogName, // 👈 dogName이 아니라 name (Entity 필드명)
+          userid: user.userid, // ✅ 세션에서 가져온 userid
+          name: dogName,
           breed: breed,
           age: ageNum,
           weight: weightNum,
-          description: intro.trim(), // 👈 intro가 아니라 description (Entity 필드명)
+          description: intro.trim() || "건강 상태: 좋음"
         }),
       });
+
       if (response.ok) {
-        // 1. 기존에 남아있던 잘못된 유저 정보(김이박 등)를 완전히 삭제
-        localStorage.removeItem("user");
+        const result = await response.text();
+        console.log("반려견 등록 성공:", result);
 
-        // 2. 현재 가입한 사용자의 정보를 새로 저장
-        // (가입 페이지에서 넘겨받은 userIdFromSignup 사용)
-        const newUser = {
-          userid: userIdFromSignup,
-          name: location.state?.userName || "새 사용자", // 가입 때 이름을 넘겨줬다면 사용
-        };
-
-        localStorage.setItem("user", JSON.stringify(newUser));
+        // ✅ localStorage의 user 정보도 최신화 (백업용)
+        localStorage.setItem("user", JSON.stringify({
+          userid: user.userid,
+          name: user.name
+        }));
 
         setMsg("반려견 정보 저장 완료!");
-
-        // 3. 모든 정보가 갱신된 후 이동
-        navigate("/home");
+        
+        // 잠시 후 홈으로 이동
+        setTimeout(() => {
+          navigate("/home");
+        }, 500);
       } else {
-        setMsg("저장에 실패했습니다.");
+        const errorText = await response.text();
+        console.error("저장 실패:", errorText);
+        setMsg("저장에 실패했습니다: " + errorText);
       }
-      // ✅ [여기까지 추가]
     } catch (e) {
+      console.error("반려견 등록 에러:", e);
       setMsg("서버에 연결할 수 없습니다.");
     } finally {
       setSaving(false);
     }
   };
+
+  // ✅ 로딩 중일 때
+  if (loading) {
+    return (
+      <div className="authPage">
+        <div className="authTop">
+          <p>로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="authPage">

@@ -139,15 +139,15 @@ export default function Signup() {
       const res = await fetch(`${API}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        credentials: "include", // ✅ 세션 쿠키 받기
         body: JSON.stringify({
           name,
           userid: userId,
           email,
           password: pw,
           phonenumber: phone,
-          agreeservice: agreeService, // 리액트 변수 : 백엔드 키
-          agreeprivacy: agreePrivacy, // 리액트 변수 : 백엔드 키
+          agreeservice: agreeService,
+          agreeprivacy: agreePrivacy,
         }),
       });
 
@@ -157,15 +157,23 @@ export default function Signup() {
         return;
       }
 
-      // 백엔드가 hasDog 내려주기
+      // ✅ 백엔드에서 자동 로그인된 사용자 정보 받기
       const data = await res.json().catch(() => ({}));
-      const hasDog = !!data.hasDog;
+      
+      console.log("회원가입 성공:", data);
 
-      // 가입 완료 → 반려견 등록 여부에 따라 이동
-      navigate(hasDog ? "/home" : "/dogOnboarding", {
-        state: { userId: userId, userName: name},
-      });
+      // ✅ localStorage에 사용자 정보 저장 (백업용)
+      localStorage.setItem("user", JSON.stringify({
+        userid: data.userid || userId,
+        name: data.name || name
+      }));
+
+      // ✅ 가입 완료 → 반려견 등록 페이지로 이동
+      // 세션이 생성되었으므로 state로 전달할 필요 없음
+      navigate("/dogOnboarding");
+      
     } catch (e) {
+      console.error("회원가입 에러:", e);
       setMsg("서버에 연결할 수 없습니다.");
     } finally {
       setSigning(false);
