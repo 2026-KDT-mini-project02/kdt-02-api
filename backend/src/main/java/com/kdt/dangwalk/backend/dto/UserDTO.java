@@ -1,6 +1,7 @@
 package com.kdt.dangwalk.backend.dto;
 
 public class UserDTO {
+    // dto 필드
     private String name;
     private String userid;
     private String password;
@@ -9,6 +10,10 @@ public class UserDTO {
     private boolean agreeservice;
     private boolean agreeprivacy;
     
+    // 생성자
+    public UserDTO() {}
+
+    // 개터 새터
     public String getName() {
         return name;
     }
