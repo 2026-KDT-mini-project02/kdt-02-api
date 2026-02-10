@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/community")
@@ -30,7 +32,7 @@ public class CommunityController {
     @PostMapping
     public ResponseEntity<CommunityPostDetailResponse> createPost(@RequestBody CommunityPostCreateRequest request) {
         CommunityPostDetailResponse response = communityService.createPost(request);
-        sseService.broadcast("community-update", "post-created");
+        sseService.broadcast("post-created", toListMap(response));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -52,7 +54,7 @@ public class CommunityController {
             @RequestHeader("X-User-Id") String userId,
             @RequestBody CommunityPostUpdateRequest request) {
         CommunityPostDetailResponse response = communityService.updatePost(id, userId, request);
-        sseService.broadcast("community-update", "post-updated");
+        sseService.broadcast("post-updated", toListMap(response));
         return ResponseEntity.ok(response);
     }
 
@@ -61,21 +63,21 @@ public class CommunityController {
             @PathVariable Long id,
             @RequestHeader("X-User-Id") String userId) {
         communityService.deletePost(id, userId);
-        sseService.broadcast("community-update", "post-deleted");
+        sseService.broadcast("post-deleted", Map.of("id", id));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/like")
     public ResponseEntity<CommunityPostDetailResponse> likePost(@PathVariable Long id) {
         CommunityPostDetailResponse response = communityService.likePost(id);
-        sseService.broadcast("community-update", "post-liked");
+        sseService.broadcast("post-liked", Map.of("id", id, "likes", response.likes()));
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}/like")
     public ResponseEntity<CommunityPostDetailResponse> unlikePost(@PathVariable Long id) {
         CommunityPostDetailResponse response = communityService.unlikePost(id);
-        sseService.broadcast("community-update", "post-unliked");
+        sseService.broadcast("post-unliked", Map.of("id", id, "likes", response.likes()));
         return ResponseEntity.ok(response);
     }
 
@@ -84,7 +86,7 @@ public class CommunityController {
             @PathVariable Long id,
             @RequestBody CommunityCommentCreateRequest request) {
         CommunityCommentResponse response = communityService.addComment(id, request);
-        sseService.broadcast("community-update", "comment-added");
+        sseService.broadcast("comment-added", Map.of("postId", id));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -92,8 +94,24 @@ public class CommunityController {
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
             @RequestHeader("X-User-Id") String userId) {
-        communityService.deleteComment(commentId, userId);
-        sseService.broadcast("community-update", "comment-deleted");
+        Long postId = communityService.deleteComment(commentId, userId);
+        sseService.broadcast("comment-deleted", Map.of("postId", postId));
         return ResponseEntity.noContent().build();
+    }
+
+    /** DetailResponse → 목록용 Map 변환 */
+    private Map<String, Object> toListMap(CommunityPostDetailResponse r) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", r.id());
+        map.put("type", r.type());
+        map.put("title", r.title());
+        String c = r.content();
+        map.put("content", c != null && c.length() > 100 ? c.substring(0, 100) + "..." : c);
+        map.put("tags", r.tags());
+        map.put("place", r.place());
+        map.put("timeAgo", r.timeAgo());
+        map.put("likes", r.likes());
+        map.put("comments", r.comments() != null ? r.comments().size() : 0);
+        return map;
     }
 }

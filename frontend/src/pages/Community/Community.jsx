@@ -59,25 +59,66 @@ export default function Community() {
     fetchPosts();
   }, [fetchPosts, location.key]);
 
-  // SSE 실시간 구독: 다른 세션에서 변경이 발생하면 자동 갱신
+  // SSE 실시간 구독: 다른 세션에서 변경이 발생하면 즉시 UI 반영
   useEffect(() => {
     const eventSource = new EventSource("http://localhost:8080/api/community/subscribe", {
       withCredentials: true,
     });
 
-    eventSource.addEventListener("community-update", () => {
-      fetchPosts();
+    // 새 글 작성 → 목록 맨 위에 추가
+    eventSource.addEventListener("post-created", (e) => {
+      const newPost = JSON.parse(e.data);
+      setPosts((prev) => [newPost, ...prev]);
+    });
+
+    // 글 수정 → 해당 항목 교체
+    eventSource.addEventListener("post-updated", (e) => {
+      const updated = JSON.parse(e.data);
+      setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    });
+
+    // 글 삭제 → 목록에서 제거
+    eventSource.addEventListener("post-deleted", (e) => {
+      const { id } = JSON.parse(e.data);
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+    });
+
+    // 좋아요/취소 → 해당 게시글 좋아요 수 즉시 반영
+    eventSource.addEventListener("post-liked", (e) => {
+      const { id, likes } = JSON.parse(e.data);
+      setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes } : p)));
+    });
+    eventSource.addEventListener("post-unliked", (e) => {
+      const { id, likes } = JSON.parse(e.data);
+      setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes } : p)));
+    });
+
+    // 댓글 추가 → 댓글 수 +1
+    eventSource.addEventListener("comment-added", (e) => {
+      const { postId } = JSON.parse(e.data);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, comments: (p.comments || 0) + 1 } : p))
+      );
+    });
+
+    // 댓글 삭제 → 댓글 수 -1
+    eventSource.addEventListener("comment-deleted", (e) => {
+      const { postId } = JSON.parse(e.data);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, comments: Math.max((p.comments || 0) - 1, 0) } : p
+        )
+      );
     });
 
     eventSource.onerror = () => {
-      // 연결 끊어지면 브라우저가 자동 재연결 시도
       console.log("SSE 연결 끊김, 재연결 시도 중...");
     };
 
     return () => {
       eventSource.close();
     };
-  }, [fetchPosts]);
+  }, []);
 
   const handleSearch = (text) => setKeyword(text);
 
