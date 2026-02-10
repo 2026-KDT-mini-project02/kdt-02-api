@@ -8,12 +8,9 @@ import IconTile from "../../components/ui/IconTile/IconTile";
 import TextField from "../../components/ui/TextField/TextField";
 import Button from "../../components/ui/Button/Button";
 
-const API = "http://localhost:8080"; // 한 곳에서만 관리
-
 export default function Signup() {
   const navigate = useNavigate();
 
-  // 폼 값들
   const [name, setName] = useState("");
   const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
@@ -21,28 +18,22 @@ export default function Signup() {
   const [pw2, setPw2] = useState("");
   const [phone, setPhone] = useState("");
 
-  // 약관
   const [agreeService, setAgreeService] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
 
-  // 화면 메시지
   const [msg, setMsg] = useState("");
 
-  // 아이디 중복확인 상태
   const [idChecked, setIdChecked] = useState(false);
   const [idOk, setIdOk] = useState(false);
   const [idMsg, setIdMsg] = useState("");
   const [checking, setChecking] = useState(false);
 
-  // 가입 처리 로딩(중복 제출 방지)
   const [signing, setSigning] = useState(false);
 
   const bind = (setter) => (e) => setter(e.target.value);
 
-  // 아이디 유효성: 4~16자, 영문/숫자/_
   const isValidUserId = (v) => /^[a-zA-Z0-9_]{4,16}$/.test(v.trim());
 
-  // 버튼 활성 조건
   const canCheckId = isValidUserId(userId) && !checking;
 
   const requiredOk = [name, userId, email, pw, pw2].every((v) => v.trim());
@@ -56,7 +47,6 @@ export default function Signup() {
     agreePrivacy &&
     !signing;
 
-  // 아이디 입력 변경 (중복확인 결과 초기화)
   const onChangeUserId = (e) => {
     setUserId(e.target.value);
     setIdChecked(false);
@@ -64,7 +54,6 @@ export default function Signup() {
     setIdMsg("");
   };
 
-  // 중복확인 API 호출
   const checkUserId = async () => {
     const v = userId.trim();
     setIdMsg("");
@@ -86,38 +75,39 @@ export default function Signup() {
     setChecking(true);
     try {
       const res = await fetch(
-        `${API}/api/auth/check-id?userId=${encodeURIComponent(v)}`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
+        `/api/auth/check-id?userId=${encodeURIComponent(v)}`,
+        { method: "GET", credentials: "include" },
       );
 
       if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
         setIdChecked(true);
         setIdOk(false);
-        setIdMsg("중복확인 실패(서버 오류)");
+        setIdMsg(data.message || "중복확인 실패(서버 오류)");
         return;
       }
 
-      // 1. JSON 값을 가져오되, 실패하면 null을 반환하게 합니다.
-      const data = await res.json().catch(() => null);
+      const exists = await res.json().catch(() => null);
 
-      // 2. data가 null이 아니고, 값이 정확히 false일 때만 '사용 가능'으로 판단합니다.
-      // 백엔드가 준 false(중복없음)를 받았을 때 available이 true가 됩니다.
-      const available = data === false;
+      if (typeof exists !== "boolean") {
+        setIdChecked(true);
+        setIdOk(false);
+        setIdMsg("중복확인 응답 형식 오류");
+        return;
+      }
+
+      const available = exists === false;
 
       setIdChecked(true);
       setIdOk(available);
       setIdMsg(
-        available
-          ? "사용 가능한 아이디입니다."
-          : "이미 사용 중인 아이디입니다.",
+        available ? "사용 가능한 아이디입니다." : "이미 사용 중인 아이디입니다.",
       );
     } catch (e) {
+      console.log("check-id error:", e);
       setIdChecked(true);
       setIdOk(false);
-      setIdMsg("서버에 연결할 수 없습니다.");
+      setIdMsg("중복확인 실패(콘솔 확인)");
     } finally {
       setChecking(false);
     }
@@ -126,17 +116,15 @@ export default function Signup() {
   const onSignup = async () => {
     setMsg("");
 
-    // 프론트 검증
     if (!requiredOk) return setMsg("필수 항목을 입력해주세요.");
     if (!idChecked || !idOk) return setMsg("아이디 중복확인을 해주세요.");
     if (pw.length < 8) return setMsg("비밀번호는 8자 이상 입력해주세요.");
     if (pw !== pw2) return setMsg("비밀번호가 일치하지 않습니다.");
-    if (!agreeService || !agreePrivacy)
-      return setMsg("필수 약관에 동의해주세요.");
+    if (!agreeService || !agreePrivacy) return setMsg("필수 약관에 동의해주세요.");
 
     setSigning(true);
     try {
-      const res = await fetch(`${API}/api/auth/signup`, {
+      const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -146,27 +134,24 @@ export default function Signup() {
           email,
           password: pw,
           phonenumber: phone,
-          agreeservice: agreeService, // 리액트 변수 : 백엔드 키
-          agreeprivacy: agreePrivacy, // 리액트 변수 : 백엔드 키
+          agreeservice: agreeService,
+          agreeprivacy: agreePrivacy,
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         setMsg(data.message || "회원가입 실패");
         return;
       }
 
-      // 백엔드가 hasDog 내려주기
-      const data = await res.json().catch(() => ({}));
-      const hasDog = !!data.hasDog;
-
-      // 가입 완료 → 반려견 등록 여부에 따라 이동
-      navigate(hasDog ? "/home" : "/dogOnboarding", {
-        state: { userId: userId, userName: name},
+      navigate("/dogOnboarding", {
+        state: { userId: userId, userName: name },
       });
     } catch (e) {
-      setMsg("서버에 연결할 수 없습니다.");
+      console.log("signup error:", e);
+      setMsg("회원가입 실패(콘솔 확인)");
     } finally {
       setSigning(false);
     }
@@ -185,11 +170,7 @@ export default function Signup() {
 
         <div className="idRow">
           <div className="idInput">
-            <TextField
-              placeholder="아이디"
-              value={userId}
-              onChange={onChangeUserId}
-            />
+            <TextField placeholder="아이디" value={userId} onChange={onChangeUserId} />
           </div>
 
           <button
@@ -204,11 +185,7 @@ export default function Signup() {
 
         {idMsg && <p className={idOk ? "idMsgOk" : "idMsgBad"}>{idMsg}</p>}
 
-        <TextField
-          placeholder="이메일"
-          value={email}
-          onChange={bind(setEmail)}
-        />
+        <TextField placeholder="이메일" value={email} onChange={bind(setEmail)} />
         <TextField
           placeholder="비밀번호 (8자 이상)"
           type="password"
@@ -262,11 +239,7 @@ export default function Signup() {
 
       <div className="signupBottom">
         <span className="muted">이미 계정이 있으신가요?</span>
-        <button
-          className="signupLink"
-          type="button"
-          onClick={() => navigate("/")}
-        >
+        <button className="signupLink" type="button" onClick={() => navigate("/")}>
           로그인하기
         </button>
       </div>

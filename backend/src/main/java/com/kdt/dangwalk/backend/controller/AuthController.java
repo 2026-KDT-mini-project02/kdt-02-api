@@ -5,7 +5,13 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.kdt.dangwalk.backend.dto.LoginRequest;
 import com.kdt.dangwalk.backend.dto.UserDTO;
@@ -25,18 +31,26 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // 회원가입 (DTO 받기 + BCrypt 적용)
+    // 아이디 중복확인 (프론트가 data===false면 사용가능 처리)
+    @GetMapping("/check-id")
+    public ResponseEntity<Boolean> checkId(@RequestParam("userId") String userId) {
+        boolean exists = userRepository.existsByUserid(userId);
+        return ResponseEntity.ok(exists); // true=중복, false=사용가능
+    }
+
+    // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody UserDTO dto) {
-        // 1) 아이디 중복 체크 (dev 내용)
+
+        // 1) 아이디 중복 체크
         if (userRepository.existsByUserid(dto.getUserid())) {
             return ResponseEntity.status(409).body(Map.of("message", "이미 사용 중인 아이디입니다."));
         }
 
-        // 2) 비밀번호 암호화 (ksy 내용)
+        // 2) 비밀번호 암호화
         String encodedPw = passwordEncoder.encode(dto.getPassword());
 
-        // 3) DTO -> Entity 변환 (dev 내용 + ksy 암호화 적용)
+        // 3) DTO -> Entity 변환
         UserEntity user = new UserEntity();
         user.setName(dto.getName());
         user.setUserid(dto.getUserid());
@@ -45,6 +59,7 @@ public class AuthController {
         user.setPhonenumber(dto.getPhonenumber());
         user.setAgreeservice(dto.isAgreeservice());
         user.setAgreeprivacy(dto.isAgreeprivacy());
+        user.setRole("USER");
 
         userRepository.save(user);
 

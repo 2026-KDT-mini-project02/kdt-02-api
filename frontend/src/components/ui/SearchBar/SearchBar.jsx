@@ -1,13 +1,7 @@
+// src/components/ui/SearchBar/SearchBar.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./SearchBar.module.css";
 
-/**
- * 재사용 검색바 컴포넌트
- * - 자동완성(입력값 포함 필터)
- * - 최근검색(localStorage)
- * - 추천검색(입력값 없을 때)
- * - 바깥 클릭 시 닫힘
- */
 export default function SearchBar({
   value,
   onChange,
@@ -33,8 +27,8 @@ export default function SearchBar({
       if (!wrapRef.current) return;
       if (!wrapRef.current.contains(e.target)) setIsOpen(false);
     };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
   }, []);
 
   // 입력값 기반 자동완성
@@ -68,6 +62,18 @@ export default function SearchBar({
     runSearch(value || "");
   };
 
+  // 드롭다운 항목 선택: blur보다 먼저 실행되게 다운 이벤트에서 처리
+  const bindPickHandlers = (text) => ({
+    onMouseDown: (e) => {
+      e.preventDefault(); // 포커스 이동/blur 방지
+      runSearch(text);
+    },
+    onTouchStart: (e) => {
+      e.preventDefault(); // 모바일 터치에서 blur/스크롤 꼬임 방지
+      runSearch(text);
+    },
+  });
+
   return (
     <div className={styles.searchWrap} ref={wrapRef}>
       <form className={styles.searchBar} onSubmit={onSubmit}>
@@ -81,6 +87,9 @@ export default function SearchBar({
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
+          onBlur={() => {
+            setTimeout(() => setIsOpen(false), 120);
+          }}
         />
       </form>
 
@@ -95,7 +104,7 @@ export default function SearchBar({
                   key={s}
                   type="button"
                   className={styles.dropItem}
-                  onClick={() => runSearch(s)}
+                  {...bindPickHandlers(s)}
                 >
                   <span className={styles.itemIcon}>🔎</span>
                   <span className={styles.itemText}>{s}</span>
@@ -113,7 +122,7 @@ export default function SearchBar({
                   key={r}
                   type="button"
                   className={styles.dropItem}
-                  onClick={() => runSearch(r)}
+                  {...bindPickHandlers(r)}
                 >
                   <span className={styles.itemIcon}>🕘</span>
                   <span className={styles.itemText}>{r}</span>
@@ -131,7 +140,7 @@ export default function SearchBar({
                   key={p}
                   type="button"
                   className={styles.dropItem}
-                  onClick={() => runSearch(p)}
+                  {...bindPickHandlers(p)}
                 >
                   <span className={styles.rank}>{i + 1}</span>
                   <span className={styles.itemText}>{p}</span>
