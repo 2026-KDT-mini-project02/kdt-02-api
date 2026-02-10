@@ -19,7 +19,7 @@ export default function BottomNav() {
   return (
     <nav className={styles.wrap}>
       <Item to="/home" label="홈" icon="🏠" />
-      <Item to="/walkRecord" label="산책기록" icon="📍" />
+      <Item to="/Record" label="산책기록" icon="📍" />
       <Item to="/community" label="커뮤니티" icon="📰" />
       <Item to="/mypage" label="프로필" icon="👤" />
     </nav>

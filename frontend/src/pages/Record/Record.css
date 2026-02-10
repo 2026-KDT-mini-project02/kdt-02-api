@@ -1,0 +1,98 @@
+/* 페이지 전체 컨테이너 */
+.container {
+  width: 100%;              /* appShell 폭을 그대로 사용 */
+  padding: 20px 16px 24px;  /* 다른 페이지랑 통일 */
+}
+
+/* 제목 */
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* 요약 카드 */
+.summary-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-card span {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.summary-card strong {
+  font-size: 18px;
+}
+
+/* 컬러 */
+.summary-card.blue {
+  background: linear-gradient(135deg, #5b8cff, #7aa2ff);
+}
+
+.summary-card.orange {
+  background: linear-gradient(135deg, #ff9f4a, #ffb36b);
+}
+
+/* 기록 카드 */
+.record-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* 헤더 */
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* 본문 */
+.record-body {
+  display: flex;
+  gap: 10px;
+}
+
+.info-box {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-box span {
+  font-size: 12px;
+  color: #555;
+}
+
+.info-box strong {
+  font-size: 16px;
+}
+
+/* 컬러 */
+.info-box.green {
+  background: #e9f7ef;
+}
+
+.info-box.peach {
+  background: #fff1e6;
+}
