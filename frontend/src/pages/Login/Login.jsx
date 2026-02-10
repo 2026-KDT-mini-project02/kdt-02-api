@@ -23,7 +23,7 @@ export default function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ userId, password: userPw }),
+        body: JSON.stringify({ userid: userId, password: userPw }),
       });
 
       // 1. 서버 응답이 실패(400, 401, 404 등)했을 때
