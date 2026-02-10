@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import "../../styles/authCommon.css";
 import "./DogOnboarding.css";
@@ -10,7 +10,9 @@ import Button from "../../components/ui/Button/Button";
 
 export default function DogOnboarding() {
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const userIdFromSignup = location.state?.userId || ""; // 👈 3. 데이터 추출
   const [dogName, setDogName] = useState("");
   const [breed, setBreed] = useState("");
 
@@ -49,21 +51,22 @@ export default function DogOnboarding() {
 
     setSaving(true);
     try {
-      // ✅ 백엔드 연결 시 사용
-      // await fetch("http://localhost:8080/api/dogs", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   credentials: "include",
-      //   body: JSON.stringify({
-      //     dogName,
-      //     breed,
-      //     age: ageNum,
-      //     weight: weightNum,
-      //     intro: intro.trim(), // 선택
-      //   }),
-      // });
+      // 1. 주소 확인: 아까 Controller에서 @RequestMapping("/api/dog")으로 만들었으므로 주소를 맞춰야 합니다.
+      await fetch("http://localhost:8080/api/dog/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          userid: userIdFromSignup,
+          name: dogName, // 👈 dogName이 아니라 name (Entity 필드명)
+          breed: breed,
+          age: ageNum,
+          weight: weightNum,
+          description: intro.trim(), // 👈 intro가 아니라 description (Entity 필드명)
+        }),
+      });
 
-      setMsg("반려견 정보 저장 준비 완료 (백엔드 연결 전)");
+      setMsg("반려견 정보 저장 완료!");
       navigate("/home");
     } catch (e) {
       setMsg("서버에 연결할 수 없습니다.");
