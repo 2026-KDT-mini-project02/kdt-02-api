@@ -8,6 +8,7 @@ public record CommunityPostDetailResponse(
         String title,
         String content,
         String author,
+        String userId,
         List<String> tags,
         String place,
         String timeAgo,

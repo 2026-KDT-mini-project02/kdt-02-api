@@ -25,6 +25,9 @@ public class CommunityComment {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String userId;
+
     @Lob
     @Column(nullable = false)
     private String text;

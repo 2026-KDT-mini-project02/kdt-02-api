@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,6 +32,7 @@ public class CommunityService {
         post.setTitle(request.title());
         post.setContent(request.content());
         post.setAuthor(request.author());
+        post.setUserId(request.userId());
         post.setPlace(request.place());
         post.setTags(normalizeTags(request.tags()));
 
@@ -53,20 +55,30 @@ public class CommunityService {
     @Transactional
     public CommunityPostDetailResponse getPostDetail(Long id) {
         CommunityPost post = getPostEntity(id);
+        if (post.getUserId() == null || post.getUserId().isBlank()) {
+            post.setUserId("seed_user");
+        }
         post.setViewCount(post.getViewCount() + 1);
         List<CommunityComment> comments = commentRepository.findByPostIdOrderByCreatedAtDesc(id);
         return toDetailResponse(post, comments);
     }
 
     @Transactional
-    public void deletePost(Long id) {
+    public void deletePost(Long id, String userId) {
+        CommunityPost post = getPostEntity(id);
+        if (!Objects.equals(post.getUserId(), userId)) {
+            throw new SecurityException("본인의 게시글만 삭제할 수 있습니다.");
+        }
         postRepository.deleteById(id);
         log.info("커뮤니티 게시글 삭제: {}", id);
     }
 
     @Transactional
-    public CommunityPostDetailResponse updatePost(Long id, CommunityPostUpdateRequest request) {
+    public CommunityPostDetailResponse updatePost(Long id, String userId, CommunityPostUpdateRequest request) {
         CommunityPost post = getPostEntity(id);
+        if (!Objects.equals(post.getUserId(), userId)) {
+            throw new SecurityException("본인의 게시글만 수정할 수 있습니다.");
+        }
         if (request.category() != null) {
             post.setCategory(request.category());
         }
@@ -97,12 +109,24 @@ public class CommunityService {
     }
 
     @Transactional
+    public CommunityPostDetailResponse unlikePost(Long id) {
+        CommunityPost post = getPostEntity(id);
+        if (post.getLikes() > 0) {
+            post.setLikes(post.getLikes() - 1);
+        }
+        CommunityPost saved = postRepository.save(post);
+        List<CommunityComment> comments = commentRepository.findByPostIdOrderByCreatedAtDesc(id);
+        return toDetailResponse(saved, comments);
+    }
+
+    @Transactional
     public CommunityCommentResponse addComment(Long postId, CommunityCommentCreateRequest request) {
         CommunityPost post = getPostEntity(postId);
 
         CommunityComment comment = new CommunityComment();
         comment.setPost(post);
-        comment.setName(request.name());
+        comment.setName(request.userId());
+        comment.setUserId(request.userId());
         comment.setText(request.text());
 
         CommunityComment saved = commentRepository.save(comment);
@@ -111,13 +135,19 @@ public class CommunityService {
         return new CommunityCommentResponse(
                 saved.getId(),
                 saved.getName(),
+                saved.getUserId(),
                 getTimeAgo(saved.getCreatedAt()),
                 saved.getText()
         );
     }
 
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long commentId, String userId) {
+        CommunityComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
+        if (!Objects.equals(comment.getUserId(), userId)) {
+            throw new SecurityException("본인의 댓글만 삭제할 수 있습니다.");
+        }
         commentRepository.deleteById(commentId);
         log.info("댓글 삭제: {}", commentId);
     }
@@ -153,6 +183,7 @@ public class CommunityService {
                 .map(comment -> new CommunityCommentResponse(
                         comment.getId(),
                         comment.getName(),
+                        comment.getUserId(),
                         getTimeAgo(comment.getCreatedAt()),
                         comment.getText()
                 ))
@@ -168,6 +199,7 @@ public class CommunityService {
                 post.getTitle(),
                 post.getContent(),
                 post.getAuthor(),
+                post.getUserId(),
             tags,
                 post.getPlace(),
                 getTimeAgo(post.getCreatedAt()),

@@ -12,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/community")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class CommunityController {
 
     private final CommunityService communityService;
@@ -36,19 +37,27 @@ public class CommunityController {
     @PutMapping("/{id}")
     public ResponseEntity<CommunityPostDetailResponse> updatePost(
             @PathVariable Long id,
+            @RequestHeader("X-User-Id") String userId,
             @RequestBody CommunityPostUpdateRequest request) {
-        return ResponseEntity.ok(communityService.updatePost(id, request));
+        return ResponseEntity.ok(communityService.updatePost(id, userId, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        communityService.deletePost(id);
+    public ResponseEntity<Void> deletePost(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") String userId) {
+        communityService.deletePost(id, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/like")
     public ResponseEntity<CommunityPostDetailResponse> likePost(@PathVariable Long id) {
         return ResponseEntity.ok(communityService.likePost(id));
+    }
+
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<CommunityPostDetailResponse> unlikePost(@PathVariable Long id) {
+        return ResponseEntity.ok(communityService.unlikePost(id));
     }
 
     @PostMapping("/{id}/comments")
@@ -59,8 +68,10 @@ public class CommunityController {
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
-        communityService.deleteComment(commentId);
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @RequestHeader("X-User-Id") String userId) {
+        communityService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -7,6 +7,7 @@ public record CommunityPostCreateRequest(
         String title,
         String content,
         String author,
+        String userId,
         String place,
         List<String> tags
 ) {

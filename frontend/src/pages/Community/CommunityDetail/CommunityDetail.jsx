@@ -17,15 +17,22 @@ export default function CommunityDetail() {
   const [editContent, setEditContent] = useState("");
   const [editPlace, setEditPlace] = useState("");
   const [editTags, setEditTags] = useState("");
-  const [commentName, setCommentName] = useState("");
   const [commentText, setCommentText] = useState("");
   const [commentList, setCommentList] = useState([]);
+  const [isLiked, setIsLiked] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState("");
+
+  useEffect(() => {
+    // 현재 로그인한 사용자 ID 가져오기
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    setCurrentUserId(user.userid || "");
+  }, []);
 
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/community/${postId}`);
+        const res = await fetch(`http://localhost:8080/api/community/${postId}`);
         if (!res.ok) throw new Error("게시글 조회 실패");
         const data = await res.json();
         setPost(data);
@@ -35,6 +42,10 @@ export default function CommunityDetail() {
         setEditContent(data.content || "");
         setEditPlace(data.place || "");
         setEditTags((data.tags || []).join(" "));
+        
+        // 좋아요 상태 확인 (localStorage 사용)
+        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+        setIsLiked(likedPosts.includes(postId));
       } catch (error) {
         console.error(error);
         setPost(null);
@@ -50,14 +61,19 @@ export default function CommunityDetail() {
   }, [postId]);
 
   const onAddComment = async () => {
-    const name = commentName.trim() || "익명";
     const text = commentText.trim();
     if (!text) return;
+    
+    if (!currentUserId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/community/${postId}/comments`, {
+      const res = await fetch(`http://localhost:8080/api/community/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, text }),
+        body: JSON.stringify({ userId: currentUserId, text }),
       });
       if (!res.ok) throw new Error("댓글 작성 실패");
       const created = await res.json();
@@ -71,43 +87,78 @@ export default function CommunityDetail() {
 
   const onLike = async () => {
     try {
-      const res = await fetch(`/api/community/${postId}/like`, { method: "POST" });
+      // 좋아요 토글
+      const method = isLiked ? "DELETE" : "POST";
+      const res = await fetch(`http://localhost:8080/api/community/${postId}/like`, { method });
       if (!res.ok) throw new Error("좋아요 실패");
       const data = await res.json();
       setPost(data);
       setCommentList(data.comments || []);
+      
+      // localStorage 업데이트
+      const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+      if (isLiked) {
+        const updated = likedPosts.filter(id => id !== postId);
+        localStorage.setItem('likedPosts', JSON.stringify(updated));
+      } else {
+        likedPosts.push(postId);
+        localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+      }
+      setIsLiked(!isLiked);
     } catch (error) {
       console.error(error);
     }
   };
 
   const onDeletePost = async () => {
+    if (!currentUserId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
     if (!window.confirm("게시글을 삭제할까요?")) return;
     try {
-      const res = await fetch(`/api/community/${postId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("삭제 실패");
+      const res = await fetch(`http://localhost:8080/api/community/${postId}`, { 
+        method: "DELETE",
+        headers: { "X-User-Id": currentUserId }
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "삭제 실패");
+      }
       nav(-1);
     } catch (error) {
       console.error(error);
-      alert("삭제에 실패했습니다.");
+      alert(error.message || "삭제에 실패했습니다.");
     }
   };
 
   const onDeleteComment = async (commentId) => {
+    if (!currentUserId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
     if (!window.confirm("댓글을 삭제할까요?")) return;
     try {
-      const res = await fetch(`/api/community/comments/${commentId}`, {
+      const res = await fetch(`http://localhost:8080/api/community/comments/${commentId}`, {
         method: "DELETE",
+        headers: { "X-User-Id": currentUserId }
       });
-      if (!res.ok) throw new Error("댓글 삭제 실패");
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "댓글 삭제 실패");
+      }
       setCommentList((prev) => prev.filter((c) => c.id !== commentId));
     } catch (error) {
       console.error(error);
-      alert("댓글 삭제에 실패했습니다.");
+      alert(error.message || "댓글 삭제에 실패했습니다.");
     }
   };
 
   const onSaveEdit = async () => {
+    if (!currentUserId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
     try {
       const payload = {
         category: editCategory,
@@ -123,19 +174,25 @@ export default function CommunityDetail() {
         alert("제목과 내용을 입력해주세요.");
         return;
       }
-      const res = await fetch(`/api/community/${postId}`, {
+      const res = await fetch(`http://localhost:8080/api/community/${postId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-Id": currentUserId
+        },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("수정 실패");
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "수정 실패");
+      }
       const updated = await res.json();
       setPost(updated);
       setCommentList(updated.comments || []);
       setEditMode(false);
     } catch (error) {
       console.error(error);
-      alert("수정에 실패했습니다.");
+      alert(error.message || "수정에 실패했습니다.");
     }
   };
 
@@ -199,15 +256,19 @@ export default function CommunityDetail() {
             ←
           </button>
           <div className={styles.topTitle}>게시글</div>
-          <button
-            className={styles.editBtn}
-            onClick={() => setEditMode((prev) => !prev)}
-          >
-            {editMode ? "취소" : "수정"}
-          </button>
-          <button className={styles.deleteBtn} onClick={onDeletePost}>
-            삭제
-          </button>
+          {post?.userId === currentUserId && (
+            <>
+              <button
+                className={styles.editBtn}
+                onClick={() => setEditMode((prev) => !prev)}
+              >
+                {editMode ? "취소" : "수정"}
+              </button>
+              <button className={styles.deleteBtn} onClick={onDeletePost}>
+                삭제
+              </button>
+            </>
+          )}
         </div>
 
         <div className={styles.body}>
@@ -287,8 +348,11 @@ export default function CommunityDetail() {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.actionItem} onClick={onLike}>
-              ♡ 좋아요 {post.likes}
+            <button 
+              className={`${styles.actionItem} ${isLiked ? styles.liked : ''}`} 
+              onClick={onLike}
+            >
+              {isLiked ? '❤️' : '♡'} 좋아요 {post.likes}
             </button>
             <div className={styles.actionItem}>💬 댓글 {commentList.length}</div>
           </div>
@@ -297,14 +361,6 @@ export default function CommunityDetail() {
 
           <div className={styles.commentTitle}>댓글 {commentList.length}</div>
 
-          <div className={styles.commentInputRow}>
-            <input
-              className={styles.commentInput}
-              placeholder="닉네임"
-              value={commentName}
-              onChange={(e) => setCommentName(e.target.value)}
-            />
-          </div>
           <div className={styles.commentInputRow}>
             <input
               className={styles.commentInput}
@@ -328,12 +384,14 @@ export default function CommunityDetail() {
                   <div className={styles.cTop}>
                     <span className={styles.cName}>{c.name}</span>
                     <span className={styles.cTime}>{c.time}</span>
-                    <button
-                      className={styles.commentDelete}
-                      onClick={() => onDeleteComment(c.id)}
-                    >
-                      삭제
-                    </button>
+                    {c.userId === currentUserId && (
+                      <button
+                        className={styles.commentDelete}
+                        onClick={() => onDeleteComment(c.id)}
+                      >
+                        삭제
+                      </button>
+                    )}
                   </div>
                   <div className={styles.cText}>{c.text}</div>
                 </div>
