@@ -7,9 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +23,9 @@ public class CommunityController {
     private final CommunityService communityService;
     private final SseService sseService;
 
-    // SSE 구독 엔드포인트 (Reactor Sink/Flux 방식)
+    // SSE 구독 엔드포인트
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<Object>> subscribe() {
+    public SseEmitter subscribe() {
         return sseService.subscribe();
     }
 
