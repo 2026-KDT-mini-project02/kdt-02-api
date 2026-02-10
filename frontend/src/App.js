@@ -9,7 +9,9 @@ import DogOnboarding from "./pages/DogOnboarding/DogOnboarding";
 import Home from "./pages/Home/Home";
 import Map from "./pages/Map/Map";
 import MyPage from "./pages/MyPage/MyPage";
+
 import Community from "./pages/Community/Community";
+import CommunityDetail from "./pages/Community/CommunityDetail/CommunityDetail";
 
 export default function App() {
   return (
@@ -25,6 +27,7 @@ export default function App() {
           <Route path="/map" element={<Map />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/community/:id" element={<CommunityDetail />} />
         </Routes>
       </div>
     </BrowserRouter>

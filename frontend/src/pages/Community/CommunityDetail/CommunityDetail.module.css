@@ -1,0 +1,317 @@
+.page {
+  min-height: 100vh;
+  background: #f5f6f8;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6f8;
+}
+
+.topbar {
+  height: 52px;
+  background: #ffffff;
+  display: flex;
+
+.editBtn {
+  margin-left: auto;
+  border: none;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.deleteBtn {
+  margin-left: 6px;
+  border: none;
+  background: #fee2e2;
+  color: #b91c1c;
+
+.editBox {
+  display: grid;
+  gap: 10px;
+}
+
+.editSelect {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.editInput {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.editTextarea {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  background: #ffffff;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.editExtra {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.saveBtn {
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.backBtn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: #f3f4f6;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.topTitle {
+  font-weight: 800;
+  color: #111827;
+}
+
+.body {
+  flex: 1;
+  padding: 14px 16px 90px;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e8f7ee;
+  color: #137a3a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.title {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.profileRow {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #374151;
+}
+
+.profileText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.author {
+  font-weight: 800;
+  color: #111827;
+}
+
+.meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.content {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid #eef0f3;
+  border-radius: 16px;
+  padding: 14px;
+  line-height: 1.5;
+  color: #374151;
+  white-space: pre-line;
+}
+
+.tagRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 18px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.actionItem {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.divider {
+  margin: 16px 0;
+  border: none;
+  border-top: 1px solid #eef0f3;
+}
+
+.commentTitle {
+  font-weight: 900;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.commentInputRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.commentInput {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  outline: none;
+  background: #ffffff;
+}
+
+.commentBtn {
+  width: 72px;
+  border: none;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.commentList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.commentItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #eef0f3;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.cAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #374151;
+}
+
+.cBody {
+  flex: 1;
+}
+
+.cTop {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.commentDelete {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.cName {
+  font-weight: 900;
+  color: #111827;
+}
+
+.cTime {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.cText {
+  margin-top: 4px;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.notFound {
+  padding: 20px 16px;
+  color: #6b7280;
+}
