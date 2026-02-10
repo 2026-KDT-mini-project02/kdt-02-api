@@ -14,41 +14,56 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "user_tbl")
 public class UserEntity {
+    // 엔티티 필드
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false, length = 20)
-    private String name; // 이름
+    @Column(name = "name", nullable = false, length = 20)
+    private String name;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String userid; // 아이디
+    @Column(name = "userid", nullable = false, unique = true, length = 50)
+    private String userid;
 
-    @Column(nullable = false, length = 255)
-    private String password; // 비밀번호
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
 
-    @Column(nullable = false, length = 100)
-    private String email; // 이메일
+    @Column(name = "email", nullable = false, length = 100)
+    private String email;
 
-    @Column(nullable = false, length = 15)
-    private String phonenumber; // 전화번호
+    @Column(name = "phonenumber", nullable = false, length = 15)
+    private String phonenumber;
 
-    @Column(length = 20)
-    private String role = "USER"; // 기본값 USER
+    @Column(name = "role", length = 20, nullable = false)
+    private String role = "USER";
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt; // 생성일시
+    private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private boolean agreeservice; // DB의 agree_service와 매핑
+    @Column(name = "agreeservice", nullable = false)
+    private boolean agreeservice;
 
-    @Column(nullable = false)
-    private boolean agreeprivacy; // DB의 agree_privacy와 매핑
+    @Column(name = "agreeprivacy", nullable = false)
+    private boolean agreeprivacy;
 
+    // 엔티티 생성자
     public UserEntity() {
     }
 
+    public UserEntity(String name, String userid, String password, String email, String phonenumber,
+                  boolean agreeservice, boolean agreeprivacy) {
+        this.name = name;
+        this.userid = userid;
+        this.password = password;
+        this.email = email;
+        this.phonenumber = phonenumber;
+        this.agreeservice = agreeservice;
+        this.agreeprivacy = agreeprivacy;
+    }
+
+    // 엔티티 게터세터
     public Long getId() {
         return id;
     }
@@ -107,10 +122,6 @@ public class UserEntity {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
     public boolean isAgreeservice() {
