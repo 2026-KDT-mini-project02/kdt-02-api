@@ -1,11 +1,18 @@
 package com.kdt.dangwalk.backend.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.kdt.dangwalk.backend.repository.UserRepository;
-import com.kdt.dangwalk.backend.client.KakaoApiClient;
-import com.kdt.dangwalk.backend.entity.UserEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.kdt.dangwalk.backend.dto.LoginRequest;
+import com.kdt.dangwalk.backend.dto.UserDTO;
+import com.kdt.dangwalk.backend.entity.UserEntity;
+import com.kdt.dangwalk.backend.repository.UserRepository;
 
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
@@ -13,11 +20,9 @@ import com.kdt.dangwalk.backend.dto.LoginRequest;
 public class AuthController {
 
     private final UserRepository userRepository;
-    private final KakaoApiClient kakaoApiClient;
 
-    public AuthController(UserRepository userRepository, KakaoApiClient kakaoApiClient) {
+    public AuthController(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.kakaoApiClient = kakaoApiClient;
     }
 
     @GetMapping("/check-id")
@@ -37,31 +42,30 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signUp(@RequestBody UserEntity userEntity) {
-        try {
-            // [추가] 가입 데이터 확인 로그
-            System.out.println("회원가입 시도 아이디: " + userEntity.getUserid());
-
-            userRepository.save(userEntity);
-            return ResponseEntity.ok("회원가입이 완료되었습니다!");
-        } catch (Exception e) {
-            // 에러 발생 시 로그를 찍어줘야 원인을 알 수 있습니다.
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("회원가입 중 오류 발생: " + e.getMessage());
+    public ResponseEntity<String> signUp(@RequestBody UserDTO dto) {
+        // 1) 아이디 중복 체크
+        if (userRepository.existsByUserid(dto.getUserid())) {
+            return ResponseEntity.status(409).body("이미 사용 중인 아이디입니다.");
         }
-    }
 
-    @GetMapping("/kakao/callback")
-    public ResponseEntity<String> kakaoCallback(@RequestParam String code) {
-        return ResponseEntity.ok("ok");
+        // 2) DTO -> Entity 변환 (생성자 사용)
+        UserEntity userEntity = new UserEntity(
+            dto.getName(),
+            dto.getUserid(),
+            dto.getPassword(),
+            dto.getEmail(),
+            dto.getPhonenumber(),
+            dto.isAgreeservice(),
+            dto.isAgreeprivacy()
+        );
+
+        userRepository.save(userEntity);
+        return ResponseEntity.ok("회원가입이 완료되었습니다!");
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // 이제 여기서 loginRequest.getUserid() 를 사용할 수 있습니다!
         System.out.println("로그인 시도 아이디: " + loginRequest.getUserid());
-
-        // 임시 응답
         return ResponseEntity.ok("로그인 시도 중입니다.");
     }
 }
