@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
 import styles from "./MyPage.module.css";
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
 
 export default function MyPage() {
   const navigate = useNavigate();
 
   // ✅ 사용자 정보 상태
   const [user, setUser] = useState({ name: "", userid: "" });
-  
+
   // ✅ 반려견 목록 상태
   const [dogs, setDogs] = useState([]);
 
@@ -25,7 +25,7 @@ export default function MyPage() {
     try {
       const response = await fetch("http://localhost:8080/api/auth/session", {
         method: "GET",
-        credentials: "include" // 세션 쿠키 포함
+        credentials: "include", // 세션 쿠키 포함
       });
 
       if (!response.ok) {
@@ -43,7 +43,6 @@ export default function MyPage() {
 
       // 반려견 목록 불러오기
       fetchDogs(userData.userid);
-
     } catch (error) {
       console.error("세션 확인 실패:", error);
       alert("로그인이 필요합니다.");
@@ -54,10 +53,13 @@ export default function MyPage() {
   // ✅ 반려견 목록 가져오기 함수
   const fetchDogs = async (userid) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/dog/list?userid=${userid}`, {
-        method: "GET",
-        credentials: "include"
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/dog/list?userid=${userid}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) {
         throw new Error("반려견 목록 조회 실패");
@@ -85,7 +87,7 @@ export default function MyPage() {
     breed: "",
     age: "",
     weight: "",
-    description: ""
+    description: "",
   });
 
   const onChange = (key) => (e) => {
@@ -94,12 +96,26 @@ export default function MyPage() {
 
   const closeAddModal = () => {
     setOpenAddDog(false);
-    setForm({ id: null, name: "", breed: "", age: "", weight: "", description: "" });
+    setForm({
+      id: null,
+      name: "",
+      breed: "",
+      age: "",
+      weight: "",
+      description: "",
+    });
   };
 
   const closeEditModal = () => {
     setOpenEditDog(false);
-    setForm({ id: null, name: "", breed: "", age: "", weight: "", description: "" });
+    setForm({
+      id: null,
+      name: "",
+      breed: "",
+      age: "",
+      weight: "",
+      description: "",
+    });
   };
 
   // ✅ 반려견 추가 함수
@@ -137,8 +153,8 @@ export default function MyPage() {
           breed: form.breed,
           age: parseInt(form.age),
           weight: parseFloat(form.weight),
-          description: form.description || "건강 상태: 좋음"
-        })
+          description: form.description || "건강 상태: 좋음",
+        }),
       });
 
       if (!response.ok) {
@@ -151,7 +167,6 @@ export default function MyPage() {
 
       closeAddModal();
       fetchDogs(user.userid);
-
     } catch (error) {
       console.error("반려견 등록 실패:", error);
       alert("반려견 추가 중 오류가 발생했습니다.");
@@ -166,7 +181,7 @@ export default function MyPage() {
       breed: dog.breed,
       age: dog.age.toString(),
       weight: dog.weight.toString(),
-      description: dog.description || ""
+      description: dog.description || "",
     });
     setOpenEditDog(true);
   };
@@ -196,18 +211,21 @@ export default function MyPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/dog/update/${form.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name: form.name,
-          breed: form.breed,
-          age: parseInt(form.age),
-          weight: parseFloat(form.weight),
-          description: form.description || "건강 상태: 좋음"
-        })
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/dog/update/${form.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            name: form.name,
+            breed: form.breed,
+            age: parseInt(form.age),
+            weight: parseFloat(form.weight),
+            description: form.description || "건강 상태: 좋음",
+          }),
+        },
+      );
 
       if (!response.ok) {
         throw new Error("반려견 수정 실패");
@@ -219,7 +237,6 @@ export default function MyPage() {
 
       closeEditModal();
       fetchDogs(user.userid);
-
     } catch (error) {
       console.error("반려견 수정 실패:", error);
       alert("반려견 수정 중 오류가 발생했습니다.");
@@ -233,10 +250,13 @@ export default function MyPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/dog/delete/${dogId}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/dog/delete/${dogId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) {
         throw new Error("반려견 삭제 실패");
@@ -247,7 +267,6 @@ export default function MyPage() {
       alert("반려견 정보가 삭제되었습니다.");
 
       fetchDogs(user.userid);
-
     } catch (error) {
       console.error("반려견 삭제 실패:", error);
       alert("반려견 삭제 중 오류가 발생했습니다.");
@@ -259,13 +278,13 @@ export default function MyPage() {
     try {
       const response = await fetch("http://localhost:8080/api/auth/logout", {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
       });
 
       if (response.ok) {
         // localStorage도 정리
         localStorage.removeItem("user");
-        
+
         alert("로그아웃 되었습니다.");
         navigate("/");
       }
@@ -305,7 +324,13 @@ export default function MyPage() {
           {/* ✅ 로딩 중일 때 */}
           {loading && (
             <div className={styles.card}>
-              <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "20px",
+                  color: "#6b7280",
+                }}
+              >
                 로딩 중...
               </div>
             </div>
@@ -314,44 +339,57 @@ export default function MyPage() {
           {/* ✅ 반려견이 없을 때 */}
           {!loading && dogs.length === 0 && (
             <div className={styles.card}>
-              <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "20px",
+                  color: "#6b7280",
+                }}
+              >
                 등록된 반려견이 없습니다.
               </div>
             </div>
           )}
 
           {/* ✅ 반려견 목록 표시 */}
-          {!loading && dogs.map((dog) => (
-            <div key={dog.id} className={`${styles.card} ${styles.dogCard}`} style={{ marginBottom: "10px" }}>
-              <div className={styles.dogRow}>
-                <img className={styles.dogImg} src="/dog.png" alt="dog" />
-                <div className={styles.dogText}>
-                  <div className={styles.dogName}>{dog.name}</div>
-                  <div className={styles.dogMeta}>
-                    {dog.age}살 · {dog.weight}kg · {dog.breed}
+          {!loading &&
+            dogs.map((dog) => (
+              <div
+                key={dog.id}
+                className={`${styles.card} ${styles.dogCard}`}
+                style={{ marginBottom: "10px" }}
+              >
+                <div className={styles.dogRow}>
+                  <img className={styles.dogImg} src="/dog.png" alt="dog" />
+                  <div className={styles.dogText}>
+                    <div className={styles.dogName}>{dog.name}</div>
+                    <div className={styles.dogMeta}>
+                      {dog.age}살 · {dog.weight}kg · {dog.breed}
+                    </div>
+                    <div className={styles.dogNote}>
+                      ❤️ {dog.description || "건강 상태: 좋음"}
+                    </div>
                   </div>
-                  <div className={styles.dogNote}>❤️ {dog.description || "건강 상태: 좋음"}</div>
+                </div>
+
+                <div className={styles.buttonRow}>
+                  <button
+                    className={styles.subButton}
+                    onClick={() => openEditModal(dog)}
+                    type="button"
+                  >
+                    프로필 수정
+                  </button>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => onDeleteDog(dog.id, dog.name)}
+                    type="button"
+                  >
+                    삭제
+                  </button>
                 </div>
               </div>
-
-              <div className={styles.buttonRow}>
-                <button
-                  className={styles.subButton}
-                  onClick={() => openEditModal(dog)}
-                  type="button"
-                >
-                  프로필 수정
-                </button>
-                <button
-                  className={styles.deleteButton}
-                  onClick={() => onDeleteDog(dog.id, dog.name)}
-                  type="button"
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          ))}
+            ))}
 
           {/* ✅ 반려견 추가 버튼 */}
           <button
