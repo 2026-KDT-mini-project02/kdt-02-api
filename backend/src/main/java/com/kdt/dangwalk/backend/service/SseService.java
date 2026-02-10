@@ -1,10 +1,12 @@
 package com.kdt.dangwalk.backend.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -15,7 +17,7 @@ public class SseService {
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(60_000L); // 60초 타임아웃
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // 무제한 연결 유지
 
         emitters.add(emitter);
 
@@ -34,12 +36,14 @@ public class SseService {
         return emitter;
     }
 
-    public void broadcast(String eventName, String data) {
-        List<SseEmitter> deadEmitters = new java.util.ArrayList<>();
+    public void broadcast(String eventName, Object data) {
+        List<SseEmitter> deadEmitters = new ArrayList<>();
 
         for (SseEmitter emitter : emitters) {
             try {
-                emitter.send(SseEmitter.event().name(eventName).data(data));
+                emitter.send(SseEmitter.event()
+                        .name(eventName)
+                        .data(data, MediaType.APPLICATION_JSON));
             } catch (IOException e) {
                 deadEmitters.add(emitter);
             }
