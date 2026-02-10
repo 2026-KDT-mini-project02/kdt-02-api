@@ -59,6 +59,26 @@ export default function Community() {
     fetchPosts();
   }, [fetchPosts, location.key]);
 
+  // SSE 실시간 구독: 다른 세션에서 변경이 발생하면 자동 갱신
+  useEffect(() => {
+    const eventSource = new EventSource("http://localhost:8080/api/community/subscribe", {
+      withCredentials: true,
+    });
+
+    eventSource.addEventListener("community-update", () => {
+      fetchPosts();
+    });
+
+    eventSource.onerror = () => {
+      // 연결 끊어지면 브라우저가 자동 재연결 시도
+      console.log("SSE 연결 끊김, 재연결 시도 중...");
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [fetchPosts]);
+
   const handleSearch = (text) => setKeyword(text);
 
   // 페이지 이동 X → 모달 열기
