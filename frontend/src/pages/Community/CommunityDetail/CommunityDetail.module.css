@@ -14,10 +14,36 @@
   background: #f5f6f8;
 }
 
+/* 상단바 */
 .topbar {
   height: 52px;
   background: #ffffff;
   display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.backBtn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: #f3f4f6;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.backBtn:hover {
+  background: #e5e7eb;
+}
+
+.topTitle {
+  font-weight: 800;
+  color: #111827;
+}
 
 .editBtn {
   margin-left: auto;
@@ -29,93 +55,147 @@
   border-radius: 10px;
   cursor: pointer;
   font-size: 12px;
+  transition: all 0.2s;
 }
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-  border-bottom: 1px solid #eef0f3;
+
+.editBtn:hover {
+  background: #c7d2fe;
 }
 
 .deleteBtn {
-  margin-left: 6px;
   border: none;
   background: #fee2e2;
   color: #b91c1c;
-
-.editBox {
-  display: grid;
-  gap: 10px;
-}
-
-.editSelect {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: #ffffff;
-}
-
-.editInput {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: #ffffff;
-}
-
-.editTextarea {
-  margin-top: 14px;
-  width: 100%;
-  min-height: 140px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 14px;
-  background: #ffffff;
-  line-height: 1.5;
-  color: #374151;
-}
-
-.editExtra {
-  margin-top: 12px;
-  display: grid;
-  gap: 10px;
-}
-
-
-.saveBtn {
-  border: none;
-  background: #2563eb;
-  color: #ffffff;
-  font-weight: 900;
-  padding: 10px 14px;
-  border-radius: 12px;
-  cursor: pointer;
-}
   font-weight: 800;
   padding: 6px 12px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 12px;
+  transition: all 0.2s;
 }
 
-.backBtn {
-  width: 38px;
-  height: 38px;
-  border: none;
-  border-radius: 12px;
-  background: #f3f4f6;
-  cursor: pointer;
-  font-size: 16px;
+.deleteBtn:hover {
+  background: #fecaca;
 }
 
-.topTitle {
-  font-weight: 800;
-  color: #111827;
-}
-
+/* 본문 */
 .body {
   flex: 1;
   padding: 14px 16px 90px;
 }
 
+/* 수정 모드 */
+.editBox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.editSelect {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background: #ffffff;
+  border: 1px solid #e7ecf5;
+  border-radius: 14px;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.06);
+  transition: all 0.2s;
+  color: #111827;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.editSelect:focus {
+  border-color: rgba(47, 107, 255, 0.45);
+  box-shadow: 0 8px 18px rgba(47, 107, 255, 0.12);
+}
+
+.editInput {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  background: #ffffff;
+  border: 1px solid #e7ecf5;
+  border-radius: 14px;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.06);
+  transition: all 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.editInput::placeholder {
+  color: rgba(17, 24, 39, 0.35);
+}
+
+.editInput:focus {
+  border-color: rgba(47, 107, 255, 0.45);
+  box-shadow: 0 8px 18px rgba(47, 107, 255, 0.12);
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e7ecf5;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #374151;
+  outline: none;
+  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.06);
+  resize: vertical;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.editTextarea::placeholder {
+  color: rgba(17, 24, 39, 0.35);
+}
+
+.editTextarea:focus {
+  border-color: rgba(47, 107, 255, 0.45);
+  box-shadow: 0 8px 18px rgba(47, 107, 255, 0.12);
+}
+
+.editExtra {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.saveBtn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  background: linear-gradient(135deg, #2f6bff 0%, #1e4ed8 100%);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(47, 107, 255, 0.24);
+  transition: all 0.2s;
+}
+
+.saveBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(47, 107, 255, 0.32);
+}
+
+.saveBtn:active {
+  transform: translateY(0);
+}
+
+/* 일반 보기 모드 */
 .badge {
   display: inline-flex;
   padding: 6px 10px;
@@ -193,6 +273,7 @@
   border-radius: 999px;
 }
 
+/* 액션 */
 .actions {
   margin-top: 12px;
   display: flex;
@@ -211,6 +292,16 @@
   cursor: pointer;
   color: inherit;
   font: inherit;
+  transition: all 0.2s;
+}
+
+.actionItem.liked {
+  color: #ef4444;
+  font-weight: 800;
+}
+
+.actionItem:hover {
+  transform: scale(1.05);
 }
 
 .divider {
@@ -219,6 +310,7 @@
   border-top: 1px solid #eef0f3;
 }
 
+/* 댓글 */
 .commentTitle {
   font-weight: 900;
   color: #111827;
@@ -233,11 +325,25 @@
 
 .commentInput {
   flex: 1;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px;
-  outline: none;
+  height: 48px;
+  padding: 0 16px;
   background: #ffffff;
+  border: 1px solid #e7ecf5;
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.04);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.commentInput::placeholder {
+  color: rgba(17, 24, 39, 0.35);
+}
+
+.commentInput:focus {
+  border-color: rgba(47, 107, 255, 0.45);
+  box-shadow: 0 6px 14px rgba(47, 107, 255, 0.1);
 }
 
 .commentBtn {
@@ -248,6 +354,11 @@
   color: #ffffff;
   font-weight: 900;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.commentBtn:hover {
+  background: #1d4ed8;
 }
 
 .commentList {
@@ -275,6 +386,7 @@
   place-items: center;
   font-weight: 900;
   color: #374151;
+  flex-shrink: 0;
 }
 
 .cBody {
@@ -287,15 +399,6 @@
   align-items: center;
 }
 
-.commentDelete {
-  margin-left: auto;
-  border: none;
-  background: transparent;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 12px;
-}
-
 .cName {
   font-weight: 900;
   color: #111827;
@@ -304,6 +407,20 @@
 .cTime {
   font-size: 12px;
   color: #6b7280;
+}
+
+.commentDelete {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.commentDelete:hover {
+  color: #ef4444;
 }
 
 .cText {
@@ -315,4 +432,5 @@
 .notFound {
   padding: 20px 16px;
   color: #6b7280;
+  text-align: center;
 }

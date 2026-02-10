@@ -5,7 +5,6 @@ const CATEGORIES = ["산책 친구", "모임", "나눔"];
 
 export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
   const [category, setCategory] = useState("산책 친구");
-  const [author, setAuthor] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [place, setPlace] = useState("");
@@ -15,7 +14,6 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
   useEffect(() => {
     if (!isOpen) return;
     setCategory("산책 친구");
-    setAuthor("");
     setTitle("");
     setContent("");
     setPlace("");
@@ -39,9 +37,19 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // 로그인한 사용자 정보 가져오기
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = user.userid;
+
+    if (!userId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
     const payload = {
       category,
-      author: author.trim() || "익명",
+      author: userId,
+      userId: userId,
       title: title.trim(),
       content: content.trim(),
       place: place.trim(),
@@ -109,14 +117,6 @@ export default function CommunityWrite({ isOpen, onClose, onSubmit }) {
               </option>
             ))}
           </select>
-
-          <label className={styles.label}>작성자</label>
-          <input
-            className={styles.input}
-            placeholder="닉네임"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-          />
 
           <label className={styles.label}>제목</label>
           <input

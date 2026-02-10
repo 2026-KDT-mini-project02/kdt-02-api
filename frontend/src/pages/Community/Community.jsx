@@ -43,7 +43,7 @@ export default function Community() {
         if (tab && tab !== "전체") params.set("category", tab);
         if (keyword.trim()) params.set("keyword", keyword.trim());
 
-        const res = await fetch(`/api/community?${params.toString()}`);
+        const res = await fetch(`http://localhost:8080/api/community?${params.toString()}`);
         if (!res.ok) throw new Error("게시글 조회 실패");
         const data = await res.json();
         setPosts(data);
@@ -65,27 +65,25 @@ export default function Community() {
   // 작성 완료 payload 받는 곳(나중에 API POST 연결)
   const handleSubmitPost = async (payload) => {
     try {
-      const res = await fetch("/api/community", {
+      const res = await fetch("http://localhost:8080/api/community", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("게시글 작성 실패");
-      const created = await res.json();
-      setPosts((prev) => [
-        {
-          id: created.id,
-          type: created.type,
-          title: created.title,
-          content: created.content,
-          tags: created.tags || [],
-          place: created.place,
-          timeAgo: created.timeAgo,
-          likes: created.likes,
-          comments: created.comments?.length || 0,
-        },
-        ...prev,
-      ]);
+      
+      // 모달 닫기
+      setOpenWrite(false);
+      
+      // 게시글 목록 새로고침
+      const params = new URLSearchParams();
+      if (tab && tab !== "전체") params.set("category", tab);
+      if (keyword.trim()) params.set("keyword", keyword.trim());
+      
+      const listRes = await fetch(`http://localhost:8080/api/community?${params.toString()}`);
+      if (!listRes.ok) throw new Error("게시글 목록 조회 실패");
+      const data = await listRes.json();
+      setPosts(data);
     } catch (error) {
       console.error(error);
       alert("게시글 작성에 실패했습니다.");

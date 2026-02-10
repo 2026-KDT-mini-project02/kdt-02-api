@@ -75,7 +75,7 @@ export default function Signup() {
     setChecking(true);
     try {
       const res = await fetch(
-        `/api/auth/check-id?userId=${encodeURIComponent(v)}`,
+        `http://localhost:8080/api/auth/check-id?userId=${encodeURIComponent(v)}`,
         { method: "GET", credentials: "include" },
       );
 
@@ -104,10 +104,10 @@ export default function Signup() {
         available ? "사용 가능한 아이디입니다." : "이미 사용 중인 아이디입니다.",
       );
     } catch (e) {
-      console.log("check-id error:", e);
+      console.error("check-id error:", e);
       setIdChecked(true);
       setIdOk(false);
-      setIdMsg("중복확인 실패(콘솔 확인)");
+      setIdMsg(`서버 연결 실패: ${e.message || "네트워크 오류"}`);
     } finally {
       setChecking(false);
     }
@@ -124,7 +124,7 @@ export default function Signup() {
 
     setSigning(true);
     try {
-      const res = await fetch(`/api/auth/signup`, {
+      const res = await fetch(`http://localhost:8080/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -150,8 +150,8 @@ export default function Signup() {
         state: { userId: userId, userName: name },
       });
     } catch (e) {
-      console.log("signup error:", e);
-      setMsg("회원가입 실패(콘솔 확인)");
+      console.error("signup error:", e);
+      setMsg(`서버 연결 실패: ${e.message || "네트워크 오류"}`);
     } finally {
       setSigning(false);
     }
