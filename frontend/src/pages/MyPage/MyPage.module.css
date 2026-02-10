@@ -119,16 +119,47 @@
   color: #374151;
 }
 
-.subButton {
-  width: 100%;
-  height: 36px;
+/* ✅ 버튼 행 (수정, 삭제 나란히) */
+.buttonRow {
+  display: flex;
+  gap: 8px;
   margin-top: 12px;
+}
+
+.subButton {
+  flex: 1;
+  height: 36px;
   border: none;
   border-radius: 12px;
   background: #ffffff;
   color: #ef4444;
   font-weight: 800;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.subButton:hover {
+  background: #fef2f2;
+}
+
+/* ✅ 삭제 버튼 */
+.deleteButton {
+  flex: 1;
+  height: 36px;
+  border: 1.5px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+  transform: translateY(-1px);
 }
 
 .addButton {
@@ -141,6 +172,11 @@
   color: #ef4444;
   font-weight: 900;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.addButton:hover {
+  background: #ffd9a8;
 }
 
 .list {
@@ -159,6 +195,11 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.listItem:hover {
+  background: #f9fafb;
 }
 
 .listItem + .listItem {
@@ -206,6 +247,16 @@
   align-items: center;
   padding: 16px;
   z-index: 999;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -215,6 +266,18 @@
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modalTop {
@@ -236,6 +299,11 @@
   font-size: 20px;
   cursor: pointer;
   color: #6b7280;
+  transition: color 0.2s;
+}
+
+.closeBtn:hover {
+  color: #111827;
 }
 
 .form {
@@ -248,6 +316,7 @@
   font-size: 12px;
   color: #6b7280;
   font-weight: 700;
+  margin-top: 4px;
 }
 
 .input {
@@ -256,6 +325,11 @@
   border: 1px solid #e5e7eb;
   padding: 0 10px;
   outline: none;
+  transition: border 0.2s;
+}
+
+.input:focus {
+  border-color: #f97316;
 }
 
 .submitBtn {
@@ -267,4 +341,50 @@
   color: #fff;
   font-weight: 900;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitBtn:hover {
+  background: #ea580c;
+}
+
+/* ✅ 수정 모달 전용 버튼 (수정/삭제) */
+.editButtonRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.updateBtn {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: #f97316;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.updateBtn:hover {
+  background: #ea580c;
+}
+
+.deleteModalBtn {
+  flex: 1;
+  height: 40px;
+  border: 2px solid #dc2626;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #dc2626;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteModalBtn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: scale(1.02);
 }

@@ -1,13 +1,11 @@
 package com.kdt.dangwalk.backend.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import com.kdt.dangwalk.backend.dto.LoginRequest;
 import com.kdt.dangwalk.backend.dto.UserDTO;
@@ -20,52 +18,80 @@ import com.kdt.dangwalk.backend.repository.UserRepository;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/check-id")
-    public ResponseEntity<Boolean> checkId(@RequestParam("userId") String userid) {
-        // 1. 요청이 들어왔는지 확인하는 로그 (터미널에서 확인용)
-        System.out.println("아이디 중복 확인 요청 들어옴: " + userid);
-
-        // 2. DB에서 아이디 존재 여부 확인 (있으면 true, 없으면 false)
-        boolean isDuplicate = userRepository.existsByUserid(userid);
-
-        // 3. 결과 로그 찍기
-        System.out.println("중복 여부 결과: " + isDuplicate);
-
-        // 4. 리액트에게 true/false를 그대로 전달
-        // 리액트에서 data === false 면 "사용 가능"으로 인식함
-        return ResponseEntity.ok(isDuplicate);
-    }
-
+    // 회원가입 (DTO 받기 + BCrypt 적용)
     @PostMapping("/signup")
-    public ResponseEntity<String> signUp(@RequestBody UserDTO dto) {
-        // 1) 아이디 중복 체크
+    public ResponseEntity<?> signUp(@RequestBody UserDTO dto) {
+        // 1) 아이디 중복 체크 (dev 내용)
         if (userRepository.existsByUserid(dto.getUserid())) {
-            return ResponseEntity.status(409).body("이미 사용 중인 아이디입니다.");
+            return ResponseEntity.status(409).body(Map.of("message", "이미 사용 중인 아이디입니다."));
         }
 
-        // 2) DTO -> Entity 변환 (생성자 사용)
-        UserEntity userEntity = new UserEntity(
-            dto.getName(),
-            dto.getUserid(),
-            dto.getPassword(),
-            dto.getEmail(),
-            dto.getPhonenumber(),
-            dto.isAgreeservice(),
-            dto.isAgreeprivacy()
-        );
+        // 2) 비밀번호 암호화 (ksy 내용)
+        String encodedPw = passwordEncoder.encode(dto.getPassword());
 
-        userRepository.save(userEntity);
-        return ResponseEntity.ok("회원가입이 완료되었습니다!");
+        // 3) DTO -> Entity 변환 (dev 내용 + ksy 암호화 적용)
+        UserEntity user = new UserEntity();
+        user.setName(dto.getName());
+        user.setUserid(dto.getUserid());
+        user.setPassword(encodedPw);
+        user.setEmail(dto.getEmail());
+        user.setPhonenumber(dto.getPhonenumber());
+        user.setAgreeservice(dto.isAgreeservice());
+        user.setAgreeprivacy(dto.isAgreeprivacy());
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "회원가입이 완료되었습니다!"));
     }
 
+    // 로그인
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println("로그인 시도 아이디: " + loginRequest.getUserid());
-        return ResponseEntity.ok("로그인 시도 중입니다.");
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        String userid = req.getUserid();
+        String rawPassword = req.getPassword();
+
+        return userRepository.findByUserid(userid)
+                .map(user -> {
+                    if (passwordEncoder.matches(rawPassword, user.getPassword())) {
+                        Map<String, Object> res = new HashMap<>();
+                        res.put("message", "로그인 성공");
+                        res.put("userid", user.getUserid());
+                        res.put("name", user.getName());
+                        return ResponseEntity.ok(res);
+                    }
+                    return ResponseEntity.status(401).body(Map.of("message", "비밀번호가 틀렸습니다."));
+                })
+                .orElse(ResponseEntity.status(404).body(Map.of("message", "가입되지 않은 아이디입니다.")));
+    }
+
+    // 아이디 찾기
+    @GetMapping("/find-id")
+    public ResponseEntity<?> findId(@RequestParam String name, @RequestParam String email) {
+        return userRepository.findByNameAndEmail(name, email)
+                .map(user -> ResponseEntity.ok(Map.of("userid", user.getUserid())))
+                .orElse(ResponseEntity.status(404).body(Map.of("message", "일치하는 정보를 찾을 수 없습니다.")));
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/reset-pw")
+    public ResponseEntity<?> resetPw(@RequestBody Map<String, String> resetData) {
+        String userid = resetData.get("userid");
+        String email = resetData.get("email");
+        String newPassword = resetData.get("newPassword");
+
+        return userRepository.findByUseridAndEmail(userid, email)
+                .map(user -> {
+                    user.setPassword(passwordEncoder.encode(newPassword));
+                    userRepository.save(user);
+                    return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 재설정되었습니다."));
+                })
+                .orElse(ResponseEntity.status(404).body(Map.of("message", "일치하는 회원 정보가 없습니다.")));
     }
 }

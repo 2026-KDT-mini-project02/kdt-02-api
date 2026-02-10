@@ -139,5 +139,5 @@ public class UserEntity {
     public void setAgreeprivacy(boolean agreeprivacy) {
         this.agreeprivacy = agreeprivacy;
     }
-    
+
 }
