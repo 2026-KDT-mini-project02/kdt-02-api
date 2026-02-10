@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
 import SearchBar from "../../components/ui/SearchBar/SearchBar";
 import FilterChips from "../../components/ui/FilterChips/FilterChips";
@@ -26,6 +26,7 @@ function typeBadgeClass(type, styles) {
 
 export default function Community() {
   const nav = useNavigate();
+  const location = useLocation();
 
   const [keyword, setKeyword] = useState("");
   const [tab, setTab] = useState("전체");
@@ -35,34 +36,35 @@ export default function Community() {
   // 글쓰기 모달 on/off
   const [openWrite, setOpenWrite] = useState(false);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (tab && tab !== "전체") params.set("category", tab);
-        if (keyword.trim()) params.set("keyword", keyword.trim());
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (tab && tab !== "전체") params.set("category", tab);
+      if (keyword.trim()) params.set("keyword", keyword.trim());
 
-        const res = await fetch(`http://localhost:8080/api/community?${params.toString()}`);
-        if (!res.ok) throw new Error("게시글 조회 실패");
-        const data = await res.json();
-        setPosts(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
+      const res = await fetch(`http://localhost:8080/api/community?${params.toString()}`);
+      if (!res.ok) throw new Error("게시글 조회 실패");
+      const data = await res.json();
+      setPosts(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }, [keyword, tab]);
+
+  // keyword, tab 변경 또는 페이지 복귀(location.key 변화) 시 자동 재조회
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts, location.key]);
 
   const handleSearch = (text) => setKeyword(text);
 
   // 페이지 이동 X → 모달 열기
   const onCreate = () => setOpenWrite(true);
 
-  // 작성 완료 payload 받는 곳(나중에 API POST 연결)
+  // 작성 완료 payload 받는 곳
   const handleSubmitPost = async (payload) => {
     try {
       const res = await fetch("http://localhost:8080/api/community", {
@@ -75,15 +77,8 @@ export default function Community() {
       // 모달 닫기
       setOpenWrite(false);
       
-      // 게시글 목록 새로고침
-      const params = new URLSearchParams();
-      if (tab && tab !== "전체") params.set("category", tab);
-      if (keyword.trim()) params.set("keyword", keyword.trim());
-      
-      const listRes = await fetch(`http://localhost:8080/api/community?${params.toString()}`);
-      if (!listRes.ok) throw new Error("게시글 목록 조회 실패");
-      const data = await listRes.json();
-      setPosts(data);
+      // 게시글 목록 즉시 재조회
+      await fetchPosts();
     } catch (error) {
       console.error(error);
       alert("게시글 작성에 실패했습니다.");

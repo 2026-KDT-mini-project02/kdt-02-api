@@ -86,27 +86,37 @@ export default function CommunityDetail() {
   };
 
   const onLike = async () => {
+    // 낙관적 업데이트: API 응답 전에 즉시 UI 반영
+    const prevPost = post;
+    const prevIsLiked = isLiked;
+    const newLikes = isLiked ? post.likes - 1 : post.likes + 1;
+    setPost({ ...post, likes: newLikes });
+    setIsLiked(!isLiked);
+
+    // localStorage 즉시 업데이트
+    const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+    if (isLiked) {
+      localStorage.setItem('likedPosts', JSON.stringify(likedPosts.filter(id => id !== postId)));
+    } else {
+      localStorage.setItem('likedPosts', JSON.stringify([...likedPosts, postId]));
+    }
+
     try {
-      // 좋아요 토글
       const method = isLiked ? "DELETE" : "POST";
       const res = await fetch(`http://localhost:8080/api/community/${postId}/like`, { method });
       if (!res.ok) throw new Error("좋아요 실패");
       const data = await res.json();
+      // 서버 응답으로 정확한 값 동기화
       setPost(data);
       setCommentList(data.comments || []);
-      
-      // localStorage 업데이트
-      const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
-      if (isLiked) {
-        const updated = likedPosts.filter(id => id !== postId);
-        localStorage.setItem('likedPosts', JSON.stringify(updated));
-      } else {
-        likedPosts.push(postId);
-        localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
-      }
-      setIsLiked(!isLiked);
     } catch (error) {
+      // 실패 시 원래 상태로 롤백
       console.error(error);
+      setPost(prevPost);
+      setIsLiked(prevIsLiked);
+      localStorage.setItem('likedPosts', JSON.stringify(
+        prevIsLiked ? likedPosts : likedPosts.filter(id => id !== postId)
+      ));
     }
   };
 
