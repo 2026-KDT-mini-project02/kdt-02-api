@@ -30,7 +30,7 @@ public class AuthController {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
   }
-
+  // 아이디 중복확인
   // 아이디 중복확인
   @GetMapping("/check-id")
   public ResponseEntity<Boolean> checkId(@RequestParam("userId") String userid) {
