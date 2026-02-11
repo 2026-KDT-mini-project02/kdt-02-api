@@ -1,72 +1,42 @@
 .wrap {
-  display: grid;
-  gap: 10px;
-  justify-items: end;
-}
-
-.row {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.rowCol {
-  display: grid;
-  gap: 10px;
-  justify-items: end;
+  flex-direction: column;
+  align-items: flex-end; /* 오른쪽 정렬 */
+  gap: 8px;
 }
 
 .chip {
-  padding: 10px 16px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1;
-  border: 1px solid rgba(17, 24, 39, 0.08);
-  background: rgba(255, 255, 255, 0.85);
-  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white; /* 글자색은 흰색으로 통일 */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* 🟢 좋음: 초록색 계열 */
 .good {
-  color: #0b6b3a;
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.25);
+  background-color: #2ecc71;
 }
+
+/* 🟡 보통: 주황/노란색 계열 */
 .normal {
-  color: #9a5b00;
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.25);
+  background-color: #f39c12;
 }
+
+/* 🟠 나쁨: 짙은 주황색 계열 */
 .bad {
-  color: #b42318;
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
+  background-color: #e67e22;
 }
+
+/* 🔴 매우 나쁨: 빨간색 계열 */
 .verybad {
-  color: #6d28d9;
-  background: rgba(139, 92, 246, 0.12);
-  border-color: rgba(139, 92, 246, 0.25);
+  background-color: #e74c3c;
 }
+
+/* ⚪ 정보 없음: 회색 계열 */
 .na {
-  color: rgba(17, 24, 39, 0.55);
-}
-
-.none {
-  color: rgba(17, 24, 39, 0.55);
-}
-.warn {
-  color: #b42318;
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
-}
-.danger {
-  color: #ffffff;
-  background: rgba(239, 68, 68, 0.9);
-  border-color: rgba(239, 68, 68, 0.9);
-}
-
-.blue {
-  color: #1d4ed8;
-  background: rgba(37, 99, 235, 0.12);
-  border-color: rgba(37, 99, 235, 0.25);
+  background-color: #bdc3c7;
+  color: #7f8c8d;
 }
