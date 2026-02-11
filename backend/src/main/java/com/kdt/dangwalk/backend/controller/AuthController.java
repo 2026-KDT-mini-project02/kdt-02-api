@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +17,6 @@ import com.kdt.dangwalk.backend.dto.UserDTO;
 import com.kdt.dangwalk.backend.entity.UserEntity;
 import com.kdt.dangwalk.backend.repository.UserRepository;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

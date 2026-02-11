@@ -6,6 +6,8 @@ import FilterChips from "../../components/ui/FilterChips/FilterChips";
 import CommunityWrite from "./CommunityWrite/CommunityWrite";
 import styles from "./Community.module.css";
 
+import { API_BASE } from "../../api/api";
+
 const TABS = ["전체", "산책 친구", "모임", "나눔"];
 
 const SUGGESTIONS = [
@@ -16,7 +18,6 @@ const SUGGESTIONS = [
   "강아지 옷 나눔",
   "댕친구",
 ];
-
 
 function typeBadgeClass(type, styles) {
   if (type === "산책 친구") return styles.badgeWalk;
@@ -43,7 +44,10 @@ export default function Community() {
       if (tab && tab !== "전체") params.set("category", tab);
       if (keyword.trim()) params.set("keyword", keyword.trim());
 
-      const res = await fetch(`http://localhost:8080/api/community?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/community?${params.toString()}`, {
+        credentials: "include", // 세션 기반이면 유지 (필요없으면 제거 가능)
+      });
+
       if (!res.ok) throw new Error("게시글 조회 실패");
       const data = await res.json();
       setPosts(data);
@@ -59,60 +63,59 @@ export default function Community() {
     fetchPosts();
   }, [fetchPosts, location.key]);
 
-  // SSE 실시간 구독: 다른 세션에서 변경이 발생하면 즉시 UI 반영
+  // SSE 실시간 구독
   useEffect(() => {
-    const eventSource = new EventSource("http://localhost:8080/api/community/subscribe", {
-      withCredentials: true,
-    });
+    // EventSource는 URL만 받는 형태로 쓰는 게 브라우저 호환이 가장 좋음
+    const url = `${API_BASE}/api/community/subscribe`;
+    const eventSource = new EventSource(url);
 
-    // 새 글 작성 → 목록 맨 위에 추가
     eventSource.addEventListener("post-created", (e) => {
       const newPost = JSON.parse(e.data);
       setPosts((prev) => [newPost, ...prev]);
     });
 
-    // 글 수정 → 해당 항목 교체
     eventSource.addEventListener("post-updated", (e) => {
       const updated = JSON.parse(e.data);
       setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     });
 
-    // 글 삭제 → 목록에서 제거
     eventSource.addEventListener("post-deleted", (e) => {
       const { id } = JSON.parse(e.data);
       setPosts((prev) => prev.filter((p) => p.id !== id));
     });
 
-    // 좋아요/취소 → 해당 게시글 좋아요 수 즉시 반영
     eventSource.addEventListener("post-liked", (e) => {
       const { id, likes } = JSON.parse(e.data);
       setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes } : p)));
     });
+
     eventSource.addEventListener("post-unliked", (e) => {
       const { id, likes } = JSON.parse(e.data);
       setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes } : p)));
     });
 
-    // 댓글 추가 → 댓글 수 +1
     eventSource.addEventListener("comment-added", (e) => {
       const { postId } = JSON.parse(e.data);
       setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, comments: (p.comments || 0) + 1 } : p))
+        prev.map((p) =>
+          p.id === postId ? { ...p, comments: (p.comments || 0) + 1 } : p
+        )
       );
     });
 
-    // 댓글 삭제 → 댓글 수 -1
     eventSource.addEventListener("comment-deleted", (e) => {
       const { postId } = JSON.parse(e.data);
       setPosts((prev) =>
         prev.map((p) =>
-          p.id === postId ? { ...p, comments: Math.max((p.comments || 0) - 1, 0) } : p
+          p.id === postId
+            ? { ...p, comments: Math.max((p.comments || 0) - 1, 0) }
+            : p
         )
       );
     });
 
     eventSource.onerror = () => {
-      console.log("SSE 연결 끊김, 재연결 시도 중...");
+      console.log("SSE 연결 끊김 (브라우저가 자동 재연결 시도)");
     };
 
     return () => {
@@ -128,17 +131,16 @@ export default function Community() {
   // 작성 완료 payload 받는 곳
   const handleSubmitPost = async (payload) => {
     try {
-      const res = await fetch("http://localhost:8080/api/community", {
+      const res = await fetch(`${API_BASE}/api/community`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // 세션 기반이면 유지
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error("게시글 작성 실패");
-      
-      // 모달 닫기
+
       setOpenWrite(false);
-      
-      // 게시글 목록 즉시 재조회
       await fetchPosts();
     } catch (error) {
       console.error(error);
@@ -174,49 +176,54 @@ export default function Community() {
           {!loading && posts.length === 0 && (
             <div className={styles.empty}>게시글이 없습니다.</div>
           )}
-          {!loading && posts.map((post) => (
-            <div
-              key={post.id}
-              className={styles.card}
-              role="button"
-              tabIndex={0}
-              onClick={() => nav(`/community/${post.id}`)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") nav(`/community/${post.id}`);
-              }}
-            >
-              <div className={styles.cardTop}>
-                <span
-                  className={`${styles.badge} ${typeBadgeClass(post.type, styles)}`}
-                >
-                  {post.type}
-                </span>
-              </div>
 
-              <div className={styles.cardTitle}>{post.title}</div>
-              <div className={styles.cardContent}>{post.content}</div>
-
-              <div className={styles.tagRow}>
-                {post.tags.map((t) => (
-                  <span key={t} className={styles.tag}>
-                    {t}
+          {!loading &&
+            posts.map((post) => (
+              <div
+                key={post.id}
+                className={styles.card}
+                role="button"
+                tabIndex={0}
+                onClick={() => nav(`/community/${post.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") nav(`/community/${post.id}`);
+                }}
+              >
+                <div className={styles.cardTop}>
+                  <span
+                    className={`${styles.badge} ${typeBadgeClass(
+                      post.type,
+                      styles
+                    )}`}
+                  >
+                    {post.type}
                   </span>
-                ))}
-              </div>
+                </div>
 
-              <div className={styles.metaRow}>
-                <div className={styles.metaLeft}>
-                  <span className={styles.metaItem}>📍 {post.place}</span>
-                  <span className={styles.dot}>•</span>
-                  <span className={styles.metaItem}>⏱ {post.timeAgo}</span>
+                <div className={styles.cardTitle}>{post.title}</div>
+                <div className={styles.cardContent}>{post.content}</div>
+
+                <div className={styles.tagRow}>
+                  {post.tags?.map((t) => (
+                    <span key={t} className={styles.tag}>
+                      {t}
+                    </span>
+                  ))}
                 </div>
-                <div className={styles.metaRight}>
-                  <span className={styles.metaIcon}>♡ {post.likes}</span>
-                  <span className={styles.metaIcon}>💬 {post.comments}</span>
+
+                <div className={styles.metaRow}>
+                  <div className={styles.metaLeft}>
+                    <span className={styles.metaItem}>📍 {post.place}</span>
+                    <span className={styles.dot}>•</span>
+                    <span className={styles.metaItem}>⏱ {post.timeAgo}</span>
+                  </div>
+                  <div className={styles.metaRight}>
+                    <span className={styles.metaIcon}>♡ {post.likes}</span>
+                    <span className={styles.metaIcon}>💬 {post.comments}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
 
         {/* 글쓰기 FAB */}

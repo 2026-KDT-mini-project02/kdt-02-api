@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BottomNav from "../../../components/ui/BottomNav/BottomNav";
 import styles from "./CommunityDetail.module.css";
 
+import { API_BASE } from "../../../api/api";
 
 export default function CommunityDetail() {
   const nav = useNavigate();
@@ -23,7 +24,6 @@ export default function CommunityDetail() {
   const [currentUserId, setCurrentUserId] = useState("");
 
   useEffect(() => {
-    // 현재 로그인한 사용자 ID 가져오기
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     setCurrentUserId(user.userid || "");
   }, []);
@@ -32,9 +32,12 @@ export default function CommunityDetail() {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:8080/api/community/${postId}`);
+        const res = await fetch(`${API_BASE}/api/community/${postId}`, {
+          credentials: "include",
+        });
         if (!res.ok) throw new Error("게시글 조회 실패");
         const data = await res.json();
+
         setPost(data);
         setCommentList(data.comments || []);
         setEditCategory(data.type || "산책 친구");
@@ -42,9 +45,10 @@ export default function CommunityDetail() {
         setEditContent(data.content || "");
         setEditPlace(data.place || "");
         setEditTags((data.tags || []).join(" "));
-        
-        // 좋아요 상태 확인 (localStorage 사용)
-        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+
+        const likedPosts = JSON.parse(
+          localStorage.getItem("likedPosts") || "[]"
+        );
         setIsLiked(likedPosts.includes(postId));
       } catch (error) {
         console.error(error);
@@ -55,26 +59,28 @@ export default function CommunityDetail() {
       }
     };
 
-    if (Number.isFinite(postId)) {
-      fetchDetail();
-    }
+    if (Number.isFinite(postId)) fetchDetail();
   }, [postId]);
 
   const onAddComment = async () => {
     const text = commentText.trim();
     if (!text) return;
-    
+
     if (!currentUserId) {
       alert("로그인이 필요합니다.");
       return;
     }
 
     try {
-      const res = await fetch(`http://localhost:8080/api/community/${postId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: currentUserId, text }),
-      });
+      const res = await fetch(
+        `${API_BASE}/api/community/${postId}/comments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ userId: currentUserId, text }),
+        }
+      );
       if (!res.ok) throw new Error("댓글 작성 실패");
       const created = await res.json();
       setCommentList((prev) => [created, ...prev]);
@@ -86,37 +92,46 @@ export default function CommunityDetail() {
   };
 
   const onLike = async () => {
-    // 낙관적 업데이트: API 응답 전에 즉시 UI 반영
     const prevPost = post;
     const prevIsLiked = isLiked;
+
     const newLikes = isLiked ? post.likes - 1 : post.likes + 1;
     setPost({ ...post, likes: newLikes });
     setIsLiked(!isLiked);
 
-    // localStorage 즉시 업데이트
-    const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
     if (isLiked) {
-      localStorage.setItem('likedPosts', JSON.stringify(likedPosts.filter(id => id !== postId)));
+      localStorage.setItem(
+        "likedPosts",
+        JSON.stringify(likedPosts.filter((x) => x !== postId))
+      );
     } else {
-      localStorage.setItem('likedPosts', JSON.stringify([...likedPosts, postId]));
+      localStorage.setItem(
+        "likedPosts",
+        JSON.stringify([...likedPosts, postId])
+      );
     }
 
     try {
       const method = isLiked ? "DELETE" : "POST";
-      const res = await fetch(`http://localhost:8080/api/community/${postId}/like`, { method });
+      const res = await fetch(`${API_BASE}/api/community/${postId}/like`, {
+        method,
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("좋아요 실패");
       const data = await res.json();
-      // 서버 응답으로 정확한 값 동기화
       setPost(data);
       setCommentList(data.comments || []);
     } catch (error) {
-      // 실패 시 원래 상태로 롤백
       console.error(error);
       setPost(prevPost);
       setIsLiked(prevIsLiked);
-      localStorage.setItem('likedPosts', JSON.stringify(
-        prevIsLiked ? likedPosts : likedPosts.filter(id => id !== postId)
-      ));
+      localStorage.setItem(
+        "likedPosts",
+        JSON.stringify(
+          prevIsLiked ? likedPosts : likedPosts.filter((x) => x !== postId)
+        )
+      );
     }
   };
 
@@ -126,11 +141,14 @@ export default function CommunityDetail() {
       return;
     }
     if (!window.confirm("게시글을 삭제할까요?")) return;
+
     try {
-      const res = await fetch(`http://localhost:8080/api/community/${postId}`, { 
+      const res = await fetch(`${API_BASE}/api/community/${postId}`, {
         method: "DELETE",
-        headers: { "X-User-Id": currentUserId }
+        headers: { "X-User-Id": currentUserId },
+        credentials: "include",
       });
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || "삭제 실패");
@@ -148,11 +166,17 @@ export default function CommunityDetail() {
       return;
     }
     if (!window.confirm("댓글을 삭제할까요?")) return;
+
     try {
-      const res = await fetch(`http://localhost:8080/api/community/comments/${commentId}`, {
-        method: "DELETE",
-        headers: { "X-User-Id": currentUserId }
-      });
+      const res = await fetch(
+        `${API_BASE}/api/community/comments/${commentId}`,
+        {
+          method: "DELETE",
+          headers: { "X-User-Id": currentUserId },
+          credentials: "include",
+        }
+      );
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || "댓글 삭제 실패");
@@ -169,6 +193,7 @@ export default function CommunityDetail() {
       alert("로그인이 필요합니다.");
       return;
     }
+
     try {
       const payload = {
         category: editCategory,
@@ -180,22 +205,27 @@ export default function CommunityDetail() {
           .map((tag) => tag.trim())
           .filter(Boolean),
       };
+
       if (!payload.title || !payload.content) {
         alert("제목과 내용을 입력해주세요.");
         return;
       }
-      const res = await fetch(`http://localhost:8080/api/community/${postId}`, {
+
+      const res = await fetch(`${API_BASE}/api/community/${postId}`, {
         method: "PUT",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "X-User-Id": currentUserId
+          "X-User-Id": currentUserId,
         },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || "수정 실패");
       }
+
       const updated = await res.json();
       setPost(updated);
       setCommentList(updated.comments || []);
@@ -233,7 +263,9 @@ export default function CommunityDetail() {
       <div className={styles.page}>
         <div className={styles.container}>
           <div className={styles.topbar}>
-            <button className={styles.backBtn} onClick={() => nav(-1)}>←</button>
+            <button className={styles.backBtn} onClick={() => nav(-1)}>
+              ←
+            </button>
             <div className={styles.topTitle}>게시글</div>
           </div>
           <div className={styles.notFound}>불러오는 중...</div>
@@ -248,7 +280,9 @@ export default function CommunityDetail() {
       <div className={styles.page}>
         <div className={styles.container}>
           <div className={styles.topbar}>
-            <button className={styles.backBtn} onClick={() => nav(-1)}>←</button>
+            <button className={styles.backBtn} onClick={() => nav(-1)}>
+              ←
+            </button>
             <div className={styles.topTitle}>게시글</div>
           </div>
           <div className={styles.notFound}>게시글을 찾을 수 없어요.</div>
@@ -262,7 +296,11 @@ export default function CommunityDetail() {
     <div className={styles.page}>
       <div className={styles.container}>
         <div className={styles.topbar}>
-          <button className={styles.backBtn} onClick={() => nav(-1)} aria-label="뒤로">
+          <button
+            className={styles.backBtn}
+            onClick={() => nav(-1)}
+            aria-label="뒤로"
+          >
             ←
           </button>
           <div className={styles.topTitle}>게시글</div>
@@ -350,7 +388,7 @@ export default function CommunityDetail() {
           )}
 
           <div className={styles.tagRow}>
-            {post.tags.map((t) => (
+            {post.tags?.map((t) => (
               <span key={t} className={styles.tag}>
                 {t}
               </span>
@@ -358,11 +396,11 @@ export default function CommunityDetail() {
           </div>
 
           <div className={styles.actions}>
-            <button 
-              className={`${styles.actionItem} ${isLiked ? styles.liked : ''}`} 
+            <button
+              className={`${styles.actionItem} ${isLiked ? styles.liked : ""}`}
               onClick={onLike}
             >
-              {isLiked ? '❤️' : '♡'} 좋아요 {post.likes}
+              {isLiked ? "❤️" : "♡"} 좋아요 {post.likes}
             </button>
             <div className={styles.actionItem}>💬 댓글 {commentList.length}</div>
           </div>
@@ -389,7 +427,7 @@ export default function CommunityDetail() {
           <div className={styles.commentList}>
             {commentList.map((c) => (
               <div key={c.id} className={styles.commentItem}>
-                <div className={styles.cAvatar}>{c.name[0]}</div>
+                <div className={styles.cAvatar}>{c.name?.[0] || "댕"}</div>
                 <div className={styles.cBody}>
                   <div className={styles.cTop}>
                     <span className={styles.cName}>{c.name}</span>
