@@ -9,6 +9,8 @@ import IconTile from "../../components/ui/IconTile/IconTile";
 import TextField from "../../components/ui/TextField/TextField";
 import Button from "../../components/ui/Button/Button";
 
+import { API_BASE } from "../../api/api";
+
 export default function FindID() {
   const navigate = useNavigate();
 
@@ -17,7 +19,6 @@ export default function FindID() {
   const [msg, setMsg] = useState("");
 
   const onFindId = async () => {
-    // 2. async 추가
     setMsg("");
 
     if (!email || !name) {
@@ -26,19 +27,14 @@ export default function FindID() {
     }
 
     try {
-      // 3. 실제 백엔드 API 호출
-      const response = await axios.get(
-        "http://localhost:8080/api/auth/find-id",
-        {
-          params: { name, email }, // 백엔드 @RequestParam에 전달됨
-        },
-      );
+      const response = await axios.get(`${API_BASE}/api/auth/find-id`, {
+        params: { name, email },
+        withCredentials: true, // 세션/쿠키 흐름이면 맞춰두는 게 안전(필요없으면 제거 가능)
+      });
 
-      // 4. 성공 시 서버에서 보낸 아이디를 메시지에 출력
       setMsg(`찾으시는 아이디는 [ ${response.data} ] 입니다.`);
     } catch (error) {
-      // 5. 실패 시 (404 등) 에러 메시지 출력
-      if (error.response && error.response.status === 404) {
+      if (error.response?.status === 404) {
         setMsg("일치하는 회원 정보가 없습니다.");
       } else {
         setMsg("서버 통신 중 오류가 발생했습니다.");

@@ -8,34 +8,28 @@ import IconTile from "../../components/ui/IconTile/IconTile";
 import TextField from "../../components/ui/TextField/TextField";
 import Button from "../../components/ui/Button/Button";
 
+import { API_BASE } from "../../api/api";
+
 export default function DogOnboarding() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const userIdFromSignup = location.state?.userId || ""; // 👈 3. 데이터 추출
+  const userIdFromSignup = location.state?.userId || "";
   const [dogName, setDogName] = useState("");
   const [breed, setBreed] = useState("");
-
-  // ✅ 이제 필수
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
-
-  // ✅ 선택(소개글)
   const [intro, setIntro] = useState("");
-
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
 
   const onSaveDog = async () => {
     setMsg("");
 
-    // 필수: 이름/견종/나이/몸무게
     if (!dogName.trim() || !breed.trim() || !age.trim() || !weight.trim()) {
       setMsg("필수 항목을 모두 입력해주세요.");
       return;
     }
 
-    // 숫자 변환(필수)
     const ageNum = Number(age);
     const weightNum = Number(weight);
 
@@ -51,42 +45,39 @@ export default function DogOnboarding() {
 
     setSaving(true);
     try {
-      // 1. 주소 확인: 아까 Controller에서 @RequestMapping("/api/dog")으로 만들었으므로 주소를 맞춰야 합니다.
-      const response = await fetch("http://localhost:8080/api/dog/register", {
+      const response = await fetch(`${API_BASE}/api/dog/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           userid: userIdFromSignup,
-          name: dogName, // 👈 dogName이 아니라 name (Entity 필드명)
+          name: dogName,
           breed: breed,
           age: ageNum,
           weight: weightNum,
-          description: intro.trim(), // 👈 intro가 아니라 description (Entity 필드명)
+          description: intro.trim(),
         }),
       });
+
       if (response.ok) {
-        // 1. 기존에 남아있던 잘못된 유저 정보(김이박 등)를 완전히 삭제
+        // 1) 기존 user 제거
         localStorage.removeItem("user");
 
-        // 2. 현재 가입한 사용자의 정보를 새로 저장
-        // (가입 페이지에서 넘겨받은 userIdFromSignup 사용)
+        // 2) 현재 가입 사용자 저장
         const newUser = {
           userid: userIdFromSignup,
-          name: location.state?.userName || "새 사용자", // 가입 때 이름을 넘겨줬다면 사용
+          name: location.state?.userName || "새 사용자",
         };
-
         localStorage.setItem("user", JSON.stringify(newUser));
 
         setMsg("반려견 정보 저장 완료!");
-
-        // 3. 모든 정보가 갱신된 후 이동
         navigate("/home");
       } else {
-        setMsg("저장에 실패했습니다.");
+        const errText = await response.text().catch(() => "");
+        setMsg(errText || "저장에 실패했습니다.");
       }
-      // ✅ [여기까지 추가]
     } catch (e) {
+      console.error(e);
       setMsg("서버에 연결할 수 없습니다.");
     } finally {
       setSaving(false);
