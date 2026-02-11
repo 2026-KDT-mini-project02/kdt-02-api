@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+// src/pages/Map/Map.jsx
+import { useEffect, useRef, useState, useCallback } from "react";
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
 import SearchBar from "../../components/ui/SearchBar/SearchBar";
 import FilterChips from "../../components/ui/FilterChips/FilterChips";
@@ -34,8 +35,8 @@ function loadKakaoMapScript() {
       }
       window.kakao.maps.load(resolve);
     };
-    script.onerror = () => reject(new Error("카카오 SDK script 로드 실패"));
 
+    script.onerror = () => reject(new Error("카카오 SDK script 로드 실패"));
     document.head.appendChild(script);
   });
 }
@@ -46,11 +47,12 @@ export default function Map() {
 
   const { location, status, error, requestLocation } = useLocation();
 
-  const mapRef = useRef(null);        // DOM
-  const mapObjRef = useRef(null);     // kakao map 객체
-  const myMarkerRef = useRef(null);   // 내 위치 마커
+  const mapRef = useRef(null);
+  const mapObjRef = useRef(null);
+  const myMarkerRef = useRef(null);
 
-  // 1) 지도 1번만 생성
+  const [mapReady, setMapReady] = useState(false);
+
   useEffect(() => {
     let canceled = false;
 
@@ -60,7 +62,6 @@ export default function Map() {
 
         const { kakao } = window;
 
-        // 임시 center (location 오기 전)
         const fallback = new kakao.maps.LatLng(37.5665, 126.9780);
 
         const map = new kakao.maps.Map(mapRef.current, {
@@ -70,11 +71,11 @@ export default function Map() {
         });
 
         mapObjRef.current = map;
+        setMapReady(true);
 
         setTimeout(() => {
           if (canceled) return;
           map.relayout();
-          map.setCenter(fallback);
         }, 0);
       })
       .catch((e) => console.error("카카오맵 로드 실패:", e));
@@ -84,8 +85,8 @@ export default function Map() {
     };
   }, []);
 
-  // 2) location이 들어오면 내 위치로 이동 + 마커 표시
   useEffect(() => {
+    if (!mapReady) return;
     if (!location) return;
     if (!mapObjRef.current) return;
 
@@ -104,11 +105,17 @@ export default function Map() {
     } else {
       myMarkerRef.current.setPosition(myPos);
     }
-  }, [location]);
+  }, [mapReady, location]);
 
-  const handleSearch = (text) => {
-    console.log("검색:", text, "카테고리:", activeCat);
-  };
+  // 검색 버튼 눌렀을 때
+  const handleSearch = useCallback(
+    (text) => {
+      console.log("검색:", text, "카테고리:", activeCat);
+      // 여기서 키워드/카테고리로 백엔드 호출하거나
+      // 카카오 장소검색(Places) 연결하면 됨
+    },
+    [activeCat]
+  );
 
   return (
     <div className={styles.page}>
@@ -121,22 +128,19 @@ export default function Map() {
           suggestions={SUGGESTIONS}
           storageKey="dangwalk_recent_search"
         />
+
         <FilterChips items={CATEGORIES} value={activeCat} onChange={setActiveCat} />
 
-        {/* 위치 권한/상태 안내 */}
         {status === "loading" && (
           <div style={{ marginTop: 8, fontSize: 12, color: "#6b7280" }}>
             현재 위치 확인 중…
           </div>
         )}
+
         {status === "error" && (
           <div style={{ marginTop: 8, fontSize: 12, color: "#ef4444" }}>
             {error}{" "}
-            <button
-              type="button"
-              onClick={() => requestLocation()}
-              style={{ marginLeft: 6 }}
-            >
+            <button type="button" onClick={() => requestLocation()} style={{ marginLeft: 6 }}>
               다시 시도
             </button>
           </div>
