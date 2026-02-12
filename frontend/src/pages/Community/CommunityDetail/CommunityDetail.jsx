@@ -145,7 +145,6 @@ export default function CommunityDetail() {
     try {
       const res = await fetch(`${API_BASE}/api/community/${postId}`, {
         method: "DELETE",
-        headers: { "X-User-Id": currentUserId },
         credentials: "include",
       });
 
@@ -172,7 +171,6 @@ export default function CommunityDetail() {
         `${API_BASE}/api/community/comments/${commentId}`,
         {
           method: "DELETE",
-          headers: { "X-User-Id": currentUserId },
           credentials: "include",
         }
       );
@@ -215,7 +213,6 @@ export default function CommunityDetail() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "X-User-Id": currentUserId,
         },
         credentials: "include",
         body: JSON.stringify(payload),

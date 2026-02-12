@@ -146,6 +146,14 @@ export default function Signup() {
         return;
       }
 
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          userid: userId,
+          name,
+        }),
+      );
+
       navigate("/dogOnboarding", {
         state: { userId: userId, userName: name },
       });
