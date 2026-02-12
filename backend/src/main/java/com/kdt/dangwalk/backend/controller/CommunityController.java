@@ -7,13 +7,13 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,8 +45,20 @@ public class CommunityController {
     }
 
     @PostMapping
-    public ResponseEntity<CommunityPostDetailResponse> createPost(@RequestBody CommunityPostCreateRequest request) {
-        CommunityPostDetailResponse response = communityService.createPost(request);
+    public ResponseEntity<CommunityPostDetailResponse> createPost(
+            @RequestBody CommunityPostCreateRequest request,
+            Authentication authentication) {
+        String userId = authentication.getName();
+        CommunityPostCreateRequest safeRequest = new CommunityPostCreateRequest(
+                request.category(),
+                request.title(),
+                request.content(),
+                userId,
+                userId,
+                request.place(),
+                request.tags());
+
+        CommunityPostDetailResponse response = communityService.createPost(safeRequest);
         sseService.broadcast("post-created", toListMap(response));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -66,8 +78,9 @@ public class CommunityController {
     @PutMapping("/{id}")
     public ResponseEntity<CommunityPostDetailResponse> updatePost(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") String userId,
+            Authentication authentication,
             @RequestBody CommunityPostUpdateRequest request) {
+        String userId = authentication.getName();
         CommunityPostDetailResponse response = communityService.updatePost(id, userId, request);
         sseService.broadcast("post-updated", toListMap(response));
         return ResponseEntity.ok(response);
@@ -76,7 +89,8 @@ public class CommunityController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") String userId) {
+            Authentication authentication) {
+        String userId = authentication.getName();
         communityService.deletePost(id, userId);
         sseService.broadcast("post-deleted", Map.of("id", id));
         return ResponseEntity.noContent().build();
@@ -99,8 +113,11 @@ public class CommunityController {
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommunityCommentResponse> addComment(
             @PathVariable Long id,
-            @RequestBody CommunityCommentCreateRequest request) {
-        CommunityCommentResponse response = communityService.addComment(id, request);
+            @RequestBody CommunityCommentCreateRequest request,
+            Authentication authentication) {
+        String userId = authentication.getName();
+        CommunityCommentCreateRequest safeRequest = new CommunityCommentCreateRequest(userId, request.text());
+        CommunityCommentResponse response = communityService.addComment(id, safeRequest);
         sseService.broadcast("comment-added", Map.of("postId", id));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -108,7 +125,8 @@ public class CommunityController {
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
-            @RequestHeader("X-User-Id") String userId) {
+            Authentication authentication) {
+        String userId = authentication.getName();
         Long postId = communityService.deleteComment(commentId, userId);
         sseService.broadcast("comment-deleted", Map.of("postId", postId));
         return ResponseEntity.noContent().build();
