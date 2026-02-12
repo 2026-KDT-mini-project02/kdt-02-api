@@ -141,7 +141,10 @@ export default function Home() {
         fetchLocationAndWeather();
     }, [navigate]);
 
-    // 3. 백엔드 'icon' 문자열에 맞춰 React-icons 컴포넌트 매핑
+    if (loading) return <div className={styles.loading}>로딩 중... 🐾</div>;
+    if (!weather) return <div className={styles.error}>데이터를 불러올 수 없습니다.</div>;
+
+    // 아이콘 매핑 함수
     const renderWeatherIcon = (iconName) => {
         const iconSize = 90; 
         switch(iconName) {
@@ -154,19 +157,6 @@ export default function Home() {
         }
     };
 
-    const onStartWalk = () => {
-        navigate("/map");
-    };
-
-    if (loading) return <div className={styles.loading}>사용자 위치 확인 중... 🐾</div>;
-    if (!weather) return <div className={styles.error}>날씨 데이터를 불러올 수 없습니다.</div>;
-
-    // 백엔드 데이터를 화면용 변수로 변환
-    const dayText = weather.date; // 예: 2026-02-11
-    const tempNow = Math.round(weather.temp);
-    const weatherSummary = weather.sky; // 예: 맑음
-    const weatherTip = `${weather.location}은 현재 ${weather.sky} 상태예요. 산책하기 딱 좋은 날씨네요! 🐾`;
-
     return (
         <div className={styles.page}>
             <div className={styles.topArea}>
@@ -174,14 +164,13 @@ export default function Home() {
                     <div className={styles.left}>
                         <div className={styles.date}>
                             <span className={styles.today}>오늘</span>
-                            <span className={styles.dayText}>{dayText}</span>
+                            <span className={styles.dayText}>{weather.date}</span>
                         </div>
 
                         <div className={styles.tempRow}>
                             <div className={styles.tempNow}>
-                                {tempNow}<span className={styles.degree}>°</span>
+                                {Math.round(weather.temp)}<span className={styles.degree}>°</span>
                             </div>
-
                             <div className={styles.minMax}>
                                 <span className={styles.max}>{weather.location}</span>
                             </div>
@@ -189,11 +178,9 @@ export default function Home() {
                     </div>
 
                     <div className={styles.right}>
-                        {/* 백엔드 dust 값을 AirAlertBar에 전달 */}
+                        {/* 🌟 핵심: 백엔드의 weather.dust("좋음" 등)를 바로 전달 */}
                         <AirAlertBar 
                             dustAlert={weather.dust} 
-                            pm10={0} 
-                            pm25={0} 
                             weatherAlerts={["자외선"]} 
                         />
                     </div>
@@ -203,8 +190,10 @@ export default function Home() {
                     <div className={styles.weatherIcon}>
                         {renderWeatherIcon(weather.icon)}
                     </div>
-                    <div className={styles.weatherText}>{weatherSummary}</div>
-                    <div className={styles.tipText}>{weatherTip}</div>
+                    <div className={styles.weatherText}>{weather.sky}</div>
+                    <div className={styles.tipText}>
+                        {weather.location}의 미세먼지는 <strong>{weather.dust}</strong> 상태예요. 🐾
+                    </div>
                 </section>
             </div>
 
@@ -213,7 +202,7 @@ export default function Home() {
             </section>
 
             <section className={styles.bottom}>
-                <Button variant="dark" onClick={onStartWalk}>
+                <Button variant="dark" onClick={() => navigate("/map")}>
                     산책 시작하기
                 </Button>
             </section>
