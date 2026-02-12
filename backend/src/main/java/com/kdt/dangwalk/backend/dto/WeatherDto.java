@@ -13,5 +13,6 @@ public class WeatherDto implements Serializable {
     private String sky;
     private String icon;
 
-    private String dust;
+    private String dust;      // 프론트의 weather.dust와 매칭
+    private String ultraDust; // 프론트의 weather.ultraDust와 매칭
 }

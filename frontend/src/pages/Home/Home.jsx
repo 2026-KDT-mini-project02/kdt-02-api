@@ -68,31 +68,11 @@ function shouldRefetch(cache, currentLat, currentLon) {
 export default function Home() {
     const navigate = useNavigate();
     const inFlightRef = useRef(false);
-    
-    // 상태 관리: 날씨 데이터와 로딩 상태
     const [weather, setWeather] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const initialCache = readWeatherCache();
-
-        // 캐시가 있으면 먼저 화면 반영
-        if (initialCache?.data) {
-            setWeather(initialCache.data);
-            setLoading(false);
-        }
-
-        // 1. 캐시 상태와 현재 위치 기준으로 필요한 경우에만 API 호출
         const getWeatherData = async (lat, lon) => {
-            const cache = readWeatherCache();
-            if (!shouldRefetch(cache, lat, lon)) {
-                if (cache?.data) {
-                    setWeather(cache.data);
-                    setLoading(false);
-                }
-                return;
-            }
-
             if (inFlightRef.current) return;
             inFlightRef.current = true;
 
@@ -102,56 +82,43 @@ export default function Home() {
                     withCredentials: true,
                 });
 
-                setWeather(response.data);
-                writeWeatherCache(lat, lon, response.data);
+                // ✅ 백엔드 데이터 추출 (.data.data)
+                const realData = response.data.data; 
+
+                if (realData) {
+                    setWeather(realData);
+                    // 캐시 저장
+                    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
+                        lat, lon, at: Date.now(), data: realData
+                    }));
+                }
                 setLoading(false);
             } catch (error) {
-                if (error?.response?.status === 401) {
-                    localStorage.removeItem("user");
-                    navigate("/");
-                    return;
-                }
-                console.error("백엔드 연결 실패:", error);
-                if (!cache?.data) {
-                    setLoading(false);
-                }
+                console.error("날씨 API 호출 실패:", error);
+                setLoading(false);
             } finally {
                 inFlightRef.current = false;
             }
         };
 
-        // 2. 사용자의 현재 GPS 위치 가져오기
-        const fetchLocationAndWeather = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const { latitude, longitude } = position.coords;
-                        await getWeatherData(latitude, longitude);
-                    },
-                    async () => {
-                        console.error("위치 권한 거부: 기본 위치(천안) 데이터를 불러옵니다.");
-                        await getWeatherData(36.8151, 127.1138);
-                    }
-                );
-            } else {
-                getWeatherData(36.8151, 127.1138);
-            }
-        };
+        // 꼬인 캐시 강제 삭제 (한 번만 실행)
+        localStorage.removeItem(WEATHER_CACHE_KEY);
 
-        fetchLocationAndWeather();
-    }, [navigate]);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => getWeatherData(pos.coords.latitude, pos.coords.longitude),
+            () => getWeatherData(36.8151, 127.1138)
+        );
+    }, []);
 
     if (loading) return <div className={styles.loading}>로딩 중... 🐾</div>;
     if (!weather) return <div className={styles.error}>데이터를 불러올 수 없습니다.</div>;
 
-    // 아이콘 매핑 함수
     const renderWeatherIcon = (iconName) => {
         const iconSize = 90; 
         switch(iconName) {
             case "sun":   return <WiDaySunny size={iconSize} color="#FFB800" />;
             case "rain":  return <WiRain size={iconSize} color="#4A90E2" />;
             case "snow":  return <WiSnow size={iconSize} color="#A5D8FF" />;
-            case "sleet": return <WiSleet size={iconSize} color="#74C0FC" />;
             case "cloud": return <WiCloudy size={iconSize} color="#909090" />;
             default:      return <WiNa size={iconSize} color="#ccc" />;
         }
@@ -166,7 +133,6 @@ export default function Home() {
                             <span className={styles.today}>오늘</span>
                             <span className={styles.dayText}>{weather.date}</span>
                         </div>
-
                         <div className={styles.tempRow}>
                             <div className={styles.tempNow}>
                                 {Math.round(weather.temp)}<span className={styles.degree}>°</span>
@@ -178,23 +144,22 @@ export default function Home() {
                     </div>
 
                     <div className={styles.right}>
-                        {/* 🌟 핵심: 백엔드의 weather.dust("좋음" 등)를 바로 전달 */}
+                        {/* 🌟 수정완료: dust와 ultraDust라는 이름으로 보냅니다. */}
                         <AirAlertBar 
-                            dustAlert={weather.dust} 
-                            weatherAlerts={["자외선"]} 
+                            dust={weather.dust} 
+                            ultraDust={weather.ultraDust} 
                         />
                     </div>
                 </header>
 
                 <section className={styles.summary}>
-                    <div className={styles.weatherIcon}>
-                        {renderWeatherIcon(weather.icon)}
-                    </div>
+                    <div className={styles.weatherIcon}>{renderWeatherIcon(weather.icon)}</div>
                     <div className={styles.weatherText}>{weather.sky}</div>
                     <div className={styles.tipText}>
-                        {weather.location}의 미세먼지는 <strong>{weather.dust}</strong> 상태예요. 🐾
+                        {weather.location}의 미세먼지는 <strong>{weather.dust}</strong>, 초미세는 <strong>{weather.ultraDust}</strong> 상태예요. 🐾
                     </div>
                 </section>
+
             </div>
 
             <section className={styles.hero}>

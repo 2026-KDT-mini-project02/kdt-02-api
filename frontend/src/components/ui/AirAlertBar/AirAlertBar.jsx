@@ -1,30 +1,32 @@
 import styles from "./AirAlertBar.module.css";
 
-// 백엔드 텍스트("좋음", "보통" 등)에 따라 색상 클래스를 결정
 function getToneByStatus(status) {
-  if (!status) return "na";
-  if (status.includes("좋음")) return "good";
-  if (status.includes("보통")) return "normal";
-  if (status.includes("나쁨")) return "bad";
-  if (status.includes("매우 나쁨")) return "verybad";
-  return "na";
+    if (!status) return "na";
+    if (status.includes("매우 나쁨")) return "verybad";
+    if (status.includes("나쁨")) return "bad";
+    if (status.includes("보통")) return "normal";
+    if (status.includes("좋음")) return "good";
+    return "na";
 }
 
 function Chip({ tone, children }) {
-  return <div className={`${styles.chip} ${styles[tone]}`}>{children}</div>;
+    return <div className={`${styles.chip} ${styles[tone]}`}>{children}</div>;
 }
 
-export default function AirAlertBar({ dustAlert }) {
-  const statusTone = getToneByStatus(dustAlert); // 여기서 "good", "normal" 등이 나옴
+// 🌟 수정완료: Home.jsx에서 보내준 이름과 정확히 일치시켰습니다.
+export default function AirAlertBar({ dust, ultraDust }) {
+    console.log("AirAlertBar 최종 수신 데이터:", { dust, ultraDust });
 
-  return (
-    <div className={styles.wrap}>
-      <div className={styles.row}>
-        {/* styles[statusTone]이 styles.good 등이 되어 CSS 색상이 입혀짐 */}
-        <Chip tone={statusTone}>
-          미세먼지 {dustAlert || "정보 없음"}
-        </Chip>
-      </div>
-    </div>
-  );
+    return (
+        <div className={styles.wrap}>
+            <div className={styles.row} style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                <Chip tone={getToneByStatus(dust)}>
+                    미세 {dust || "정보없음"}
+                </Chip>
+                <Chip tone={getToneByStatus(ultraDust)}>
+                    초미세 {ultraDust || "정보없음"}
+                </Chip>
+            </div>
+        </div>
+    );
 }
