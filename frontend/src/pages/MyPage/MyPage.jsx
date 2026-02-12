@@ -4,7 +4,7 @@ import { API_BASE } from "../../api/api";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
 import styles from "./MyPage.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -18,6 +18,27 @@ export default function MyPage() {
   // 로딩 상태
   const [loading, setLoading] = useState(true);
 
+  // 반려견 목록 가져오기 함수
+  const fetchDogs = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/api/dog/list`, {
+        withCredentials: true,
+      });
+      setDogs(response.data);
+      console.log("반려견 목록:", response.data);
+    } catch (error) {
+      console.error("반려견 목록 조회 실패:", error);
+      if (error?.response?.status === 401) {
+        localStorage.removeItem("user");
+        navigate("/");
+        return;
+      }
+      alert("반려견 정보를 불러오는데 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
   useEffect(() => {
     // 로그인 시 저장했던 'user' 객체를 가져옴
     const storedUser = localStorage.getItem("user");
@@ -30,28 +51,12 @@ export default function MyPage() {
       });
 
       // 반려견 목록 불러오기
-      fetchDogs(userData.userid);
+      fetchDogs();
     } else {
       // 로그인 정보가 없으면 로그인 페이지로 이동
       navigate("/");
     }
-  }, [navigate]);
-
-  // 반려견 목록 가져오기 함수
-  const fetchDogs = async (userid) => {
-    try {
-      const response = await axios.get(`${API_BASE}/api/dog/list`, {
-        params: { userid },
-      });
-      setDogs(response.data);
-      console.log("반려견 목록:", response.data);
-    } catch (error) {
-      console.error("반려견 목록 조회 실패:", error);
-      alert("반려견 정보를 불러오는데 실패했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigate, fetchDogs]);
 
   // 모달 상태
   const [openAddDog, setOpenAddDog] = useState(false);
@@ -109,13 +114,15 @@ export default function MyPage() {
         age: parseInt(form.age, 10),
         weight: parseFloat(form.weight),
         description: form.description || "건강 상태: 좋음",
+      }, {
+        withCredentials: true,
       });
 
       console.log("반려견 등록 성공:", response.data);
       alert("반려견이 추가되었습니다!");
 
       closeAddModal();
-      fetchDogs(user.userid);
+      fetchDogs();
     } catch (error) {
       console.error("반려견 등록 실패:", error);
       alert("반려견 추가 중 오류가 발생했습니다.");
@@ -154,13 +161,16 @@ export default function MyPage() {
           weight: parseFloat(form.weight),
           description: form.description || "건강 상태: 좋음",
         },
+        {
+          withCredentials: true,
+        },
       );
 
       console.log("반려견 수정 성공:", response.data);
       alert("반려견 정보가 수정되었습니다!");
 
       closeEditModal();
-      fetchDogs(user.userid);
+      fetchDogs();
     } catch (error) {
       console.error("반려견 수정 실패:", error);
       alert("반려견 수정 중 오류가 발생했습니다.");
@@ -174,11 +184,14 @@ export default function MyPage() {
     try {
       const response = await axios.delete(
         `${API_BASE}/api/dog/delete/${dogId}`,
+        {
+          withCredentials: true,
+        },
       );
       console.log("반려견 삭제 성공:", response.data);
       alert("반려견 정보가 삭제되었습니다.");
 
-      fetchDogs(user.userid);
+      fetchDogs();
     } catch (error) {
       console.error("반려견 삭제 실패:", error);
       alert("반려견 삭제 중 오류가 발생했습니다.");
@@ -186,9 +199,15 @@ export default function MyPage() {
   };
 
   // 로그아웃 함수
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${API_BASE}/api/auth/logout`, {}, { withCredentials: true });
+    } catch (error) {
+      console.error("로그아웃 요청 실패:", error);
+    } finally {
+      localStorage.removeItem("user");
+      navigate("/");
+    }
   };
 
   return (

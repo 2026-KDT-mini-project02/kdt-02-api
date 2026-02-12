@@ -2,7 +2,9 @@ package com.kdt.dangwalk.backend.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kdt.dangwalk.backend.entity.DogEntity;
@@ -27,8 +28,11 @@ public class DogController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerDog(@RequestBody DogEntity dogEntity) {
+    public ResponseEntity<String> registerDog(@RequestBody DogEntity dogEntity, Authentication authentication) {
         try {
+            String userId = authentication.getName();
+            dogEntity.setUserid(userId);
+
             // 리액트에서 보낸 강아지 정보(userid, name, breed 등)가 dogEntity에 자동으로 담깁니다.
             System.out.println("강아지 등록 시도: " + dogEntity.getName() + " (주인: " + dogEntity.getUserid() + ")");
 
@@ -42,21 +46,29 @@ public class DogController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<DogEntity>> getDogList(@RequestParam String userid) {
-        // 해당 유저아이디를 가진 강아지들만 찾아오기
-        List<DogEntity> dogs = dogRepository.findByUserid(userid);
+    public ResponseEntity<List<DogEntity>> getDogList(Authentication authentication) {
+        String userId = authentication.getName();
+        List<DogEntity> dogs = dogRepository.findByUserid(userId);
         return ResponseEntity.ok(dogs);
     }
 
     // ✅ 반려견 수정
     @PutMapping("/update/{id}")
-    public ResponseEntity<String> updateDog(@PathVariable Long id, @RequestBody DogEntity dogEntity) {
+    public ResponseEntity<String> updateDog(
+            @PathVariable Long id,
+            @RequestBody DogEntity dogEntity,
+            Authentication authentication) {
         try {
+            String userId = authentication.getName();
             System.out.println("반려견 수정 시도 - ID: " + id);
 
             // DB에서 해당 ID의 반려견 찾기
             return dogRepository.findById(id)
                     .map(existingDog -> {
+                        if (!userId.equals(existingDog.getUserid())) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 반려견만 수정할 수 있습니다.");
+                        }
+
                         // 기존 반려견 정보 업데이트
                         existingDog.setName(dogEntity.getName());
                         existingDog.setBreed(dogEntity.getBreed());
@@ -77,17 +89,20 @@ public class DogController {
 
     // ✅ 반려견 삭제
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteDog(@PathVariable Long id) {
+    public ResponseEntity<String> deleteDog(@PathVariable Long id, Authentication authentication) {
         try {
+            String userId = authentication.getName();
             System.out.println("반려견 삭제 시도 - ID: " + id);
 
-            // DB에서 해당 ID의 반려견이 존재하는지 확인
-            if (dogRepository.existsById(id)) {
-                dogRepository.deleteById(id);
-                return ResponseEntity.ok("반려견 정보가 삭제되었습니다.");
-            } else {
-                return ResponseEntity.status(404).body("해당 반려견을 찾을 수 없습니다.");
-            }
+            return dogRepository.findById(id)
+                    .map(existingDog -> {
+                        if (!userId.equals(existingDog.getUserid())) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 반려견만 삭제할 수 있습니다.");
+                        }
+                        dogRepository.deleteById(id);
+                        return ResponseEntity.ok("반려견 정보가 삭제되었습니다.");
+                    })
+                    .orElse(ResponseEntity.status(404).body("해당 반려견을 찾을 수 없습니다."));
 
         } catch (Exception e) {
             e.printStackTrace();
