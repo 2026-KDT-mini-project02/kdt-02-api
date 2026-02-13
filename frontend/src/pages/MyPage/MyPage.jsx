@@ -17,6 +17,7 @@ export default function MyPage() {
 
   // 로딩 상태
   const [loading, setLoading] = useState(true);
+  const [authExpired, setAuthExpired] = useState(false);
 
   // 반려견 목록 가져오기 함수
   const fetchDogs = useCallback(async () => {
@@ -29,15 +30,14 @@ export default function MyPage() {
     } catch (error) {
       console.error("반려견 목록 조회 실패:", error);
       if (error?.response?.status === 401) {
-        localStorage.removeItem("user");
-        navigate("/");
+        setAuthExpired(true);
         return;
       }
       alert("반려견 정보를 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     // 로그인 시 저장했던 'user' 객체를 가져옴
@@ -97,6 +97,11 @@ export default function MyPage() {
     resetForm();
   };
 
+  const handleReLogin = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
   // 반려견 추가 함수
   const onSubmitDog = async (e) => {
     e.preventDefault();
@@ -125,6 +130,10 @@ export default function MyPage() {
       fetchDogs();
     } catch (error) {
       console.error("반려견 등록 실패:", error);
+      if (error?.response?.status === 401) {
+        setAuthExpired(true);
+        return;
+      }
       alert("반려견 추가 중 오류가 발생했습니다.");
     }
   };
@@ -173,6 +182,10 @@ export default function MyPage() {
       fetchDogs();
     } catch (error) {
       console.error("반려견 수정 실패:", error);
+      if (error?.response?.status === 401) {
+        setAuthExpired(true);
+        return;
+      }
       alert("반려견 수정 중 오류가 발생했습니다.");
     }
   };
@@ -194,6 +207,10 @@ export default function MyPage() {
       fetchDogs();
     } catch (error) {
       console.error("반려견 삭제 실패:", error);
+      if (error?.response?.status === 401) {
+        setAuthExpired(true);
+        return;
+      }
       alert("반려견 삭제 중 오류가 발생했습니다.");
     }
   };
@@ -227,6 +244,17 @@ export default function MyPage() {
             </div>
           </div>
         </section>
+
+        {authExpired && (
+          <section className={styles.card}>
+            <div style={{ marginBottom: 8, color: "#b91c1c", fontWeight: 700 }}>
+              세션이 만료되었거나 인증이 필요합니다.
+            </div>
+            <button className={styles.subButton} type="button" onClick={handleReLogin}>
+              로그인 화면으로 이동
+            </button>
+          </section>
+        )}
 
         {/* 내 반려견 */}
         <section className={styles.section}>

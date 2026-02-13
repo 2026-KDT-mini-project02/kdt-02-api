@@ -1,1 +1,2 @@
-export const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
+// CRA dev server(proxy) 기준: 모든 API를 상대경로(/api/...)로 호출
+export const API_BASE = "";

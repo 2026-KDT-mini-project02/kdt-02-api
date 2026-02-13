@@ -8,8 +8,6 @@ import TextField from "../../components/ui/TextField/TextField";
 import Button from "../../components/ui/Button/Button";
 import IconTile from "../../components/ui/IconTile/IconTile";
 
-import { API_BASE } from "../../api/api";
-
 export default function Login() {
   const navigate = useNavigate();
 
@@ -21,7 +19,7 @@ export default function Login() {
     setErrorMsg("");
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

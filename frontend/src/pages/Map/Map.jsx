@@ -1,121 +1,122 @@
-// src/pages/Map/Map.jsx
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import axios from "axios";
+
 import BottomNav from "../../components/ui/BottomNav/BottomNav";
-import SearchBar from "../../components/ui/SearchBar/SearchBar";
 import FilterChips from "../../components/ui/FilterChips/FilterChips";
-import styles from "./Map.module.css";
+import SearchBar from "../../components/ui/SearchBar/SearchBar";
+import MapView from "../../components/map/MapView";
+import PhotoUploadButton from "../../components/map/PhotoUploadButton";
+import RoadviewModal from "../../components/map/RoadviewModal";
 import { useLocation } from "../../contexts/LocationContext";
+import styles from "./Map.module.css";
 
-const CATEGORIES = ["동물병원", "동물약국", "미용", "카페", "식당", "반려동물용품"];
+const PHOTO_SPOT_API_BASE =
+  process.env.REACT_APP_PHOTO_SPOT_API_BASE || `http://${window.location.hostname}:8080`;
 
-const SUGGESTIONS = [
-  "강남 동물병원",
-  "24시 동물병원",
-  "애견 미용실",
-  "반려견 카페",
-  "반려동물 동반 식당",
-  "동물약국",
-  "펫샵",
-];
-
-function loadKakaoMapScript() {
-  return new Promise((resolve, reject) => {
-    const key = process.env.REACT_APP_KAKAO_JS_KEY;
-    if (!key) return reject(new Error("REACT_APP_KAKAO_JS_KEY 없음 (.env 확인/재시작)"));
-
-    if (window.kakao && window.kakao.maps) return resolve();
-
-    const script = document.createElement("script");
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&autoload=false`;
-    script.async = true;
-
-    script.onload = () => {
-      if (!window.kakao || !window.kakao.maps) {
-        return reject(new Error("script 로드 후 window.kakao.maps 없음"));
-      }
-      window.kakao.maps.load(resolve);
-    };
-
-    script.onerror = () => reject(new Error("카카오 SDK script 로드 실패"));
-    document.head.appendChild(script);
-  });
+function toAbsolutePhotoUrl(url) {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${PHOTO_SPOT_API_BASE}${url}`;
 }
+
+const CATEGORIES = [
+  "전체",
+  "공원",
+  "카페",
+  "식당",
+  "동물병원",
+  "동물약국",
+  "미용",
+  "반려동물용품",
+  "문화시설",
+];
+const SUGGESTIONS = ["동물병원", "반려견 동반 카페", "공원"];
 
 export default function Map() {
   const [keyword, setKeyword] = useState("");
-  const [activeCat, setActiveCat] = useState("동물병원");
-
+  const [activeCat, setActiveCat] = useState(CATEGORIES[0]);
+  const [photoSpots, setPhotoSpots] = useState([]);
+  const [selectedSpot, setSelectedSpot] = useState(null);
+  const [roadviewOpen, setRoadviewOpen] = useState(false);
+  const [spotSaving, setSpotSaving] = useState(false);
   const { location, status, error, requestLocation } = useLocation();
+  const mapViewRef = useRef(null);
 
-  const mapRef = useRef(null);
-  const mapObjRef = useRef(null);
-  const myMarkerRef = useRef(null);
-
-  const [mapReady, setMapReady] = useState(false);
-
-  useEffect(() => {
-    let canceled = false;
-
-    loadKakaoMapScript()
-      .then(() => {
-        if (canceled) return;
-
-        const { kakao } = window;
-
-        const fallback = new kakao.maps.LatLng(37.5665, 126.9780);
-
-        const map = new kakao.maps.Map(mapRef.current, {
-          center: fallback,
-          level: 4,
-          draggable: true,
-        });
-
-        mapObjRef.current = map;
-        setMapReady(true);
-
-        setTimeout(() => {
-          if (canceled) return;
-          map.relayout();
-        }, 0);
-      })
-      .catch((e) => console.error("카카오맵 로드 실패:", e));
-
-    return () => {
-      canceled = true;
-    };
+  const handleSearch = useCallback((text) => {
+    setKeyword(text);
   }, []);
 
   useEffect(() => {
-    if (!mapReady) return;
-    if (!location) return;
-    if (!mapObjRef.current) return;
+    let cancelled = false;
 
-    const { kakao } = window;
-    const map = mapObjRef.current;
+    const fetchPhotoSpots = async () => {
+      try {
+        const response = await axios.get(`${PHOTO_SPOT_API_BASE}/api/photo-spots/mine`, {
+          withCredentials: true,
+        });
+        if (cancelled) return;
+        const nextSpots = Array.isArray(response.data)
+          ? response.data.map((spot) => ({
+              ...spot,
+              imgUrl: toAbsolutePhotoUrl(spot?.imgUrl),
+            }))
+          : [];
+        setPhotoSpots(nextSpots);
+      } catch (e) {
+        console.error("Failed to load photo spots:", e);
+      }
+    };
 
-    const myPos = new kakao.maps.LatLng(location.lat, location.lng);
+    fetchPhotoSpots();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-    map.setCenter(myPos);
+  const handleAddPhotoSpot = useCallback(
+    async (file) => {
+      if (!file) return;
 
-    if (!myMarkerRef.current) {
-      myMarkerRef.current = new kakao.maps.Marker({
-        position: myPos,
-        map,
-      });
-    } else {
-      myMarkerRef.current.setPosition(myPos);
-    }
-  }, [mapReady, location]);
+      setSpotSaving(true);
+      try {
+        const center = mapViewRef.current?.getCenter() ?? location;
+        if (!center) {
+          alert("지도의 중심 좌표를 확인할 수 없습니다.");
+          return;
+        }
 
-  // 검색 버튼 눌렀을 때
-  const handleSearch = useCallback(
-    (text) => {
-      console.log("검색:", text, "카테고리:", activeCat);
-      // 여기서 키워드/카테고리로 백엔드 호출하거나
-      // 카카오 장소검색(Places) 연결하면 됨
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("lat", String(center.lat));
+        formData.append("lng", String(center.lng));
+
+        const response = await axios.post(`${PHOTO_SPOT_API_BASE}/api/photo-spots`, formData, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        const savedSpot = {
+          ...response.data,
+          imgUrl: toAbsolutePhotoUrl(response.data?.imgUrl),
+        };
+        if (!savedSpot?.id) throw new Error("Invalid photo spot response");
+        setPhotoSpots((prev) => [savedSpot, ...prev]);
+      } catch (e) {
+        console.error("Failed to upload photo spot:", e);
+        alert("사진 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        setSpotSaving(false);
+      }
     },
-    [activeCat]
+    [location]
   );
+
+  const handleClickSpot = useCallback((spot) => {
+    setSelectedSpot(spot);
+    setRoadviewOpen(true);
+  }, []);
 
   return (
     <div className={styles.page}>
@@ -124,7 +125,7 @@ export default function Map() {
           value={keyword}
           onChange={setKeyword}
           onSearch={handleSearch}
-          placeholder="장소 검색"
+          placeholder="검색하기"
           suggestions={SUGGESTIONS}
           storageKey="dangwalk_recent_search"
         />
@@ -133,7 +134,7 @@ export default function Map() {
 
         {status === "loading" && (
           <div style={{ marginTop: 8, fontSize: 12, color: "#6b7280" }}>
-            현재 위치 확인 중…
+            Checking current location...
           </div>
         )}
 
@@ -141,17 +142,31 @@ export default function Map() {
           <div style={{ marginTop: 8, fontSize: 12, color: "#ef4444" }}>
             {error}{" "}
             <button type="button" onClick={() => requestLocation()} style={{ marginLeft: 6 }}>
-              다시 시도
+              Retry
             </button>
           </div>
         )}
       </div>
 
       <div className={styles.mapArea}>
-        <div ref={mapRef} className={styles.map} />
+        <MapView
+          ref={mapViewRef}
+          keyword={keyword}
+          activeCat={activeCat}
+          location={location}
+          photoSpots={photoSpots}
+          onClickPhotoSpot={handleClickSpot}
+          mapClassName={styles.map}
+        />
+
+        <PhotoUploadButton disabled={spotSaving} loading={spotSaving} onUpload={handleAddPhotoSpot} />
       </div>
 
       <BottomNav />
+
+      {roadviewOpen && selectedSpot && (
+        <RoadviewModal spot={selectedSpot} onClose={() => setRoadviewOpen(false)} />
+      )}
     </div>
   );
 }

@@ -75,7 +75,7 @@ export default function Signup() {
     setChecking(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/auth/check-id?userId=${encodeURIComponent(v)}`,
+        `/api/auth/check-id?userId=${encodeURIComponent(v)}`,
         { method: "GET", credentials: "include" },
       );
 
@@ -124,7 +124,7 @@ export default function Signup() {
 
     setSigning(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/auth/signup`, {
+      const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
